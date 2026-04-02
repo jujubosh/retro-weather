@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Weather</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #1a0a3e;
+    --panel-bg: rgba(58, 50, 120, 0.65);
+    --panel-border: rgba(120, 110, 180, 0.3);
+    --orange-warm: #e8944a;
+    --orange-peach: #f0b87a;
+    --orange-hot: #d4712a;
+    --yellow: #ffdd44;
+    --white: #e8e8e8;
+    --bright: #ffffff;
+    --bottom-bg: #1c1650;
+    --logo-border: #8899cc;
+    --mono: 'Share Tech Mono', 'Courier New', monospace;
+    --sans: Arial, Helvetica, sans-serif;
+    --card-top: #3a5ca8;
+    --card-bot: #5b8fd4;
+    --card-border: rgba(100, 140, 200, 0.5);
+  }
+
+  html, body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    font-family: var(--mono);
+    background: var(--bg-deep);
+    color: var(--white);
+    text-transform: uppercase;
+    text-shadow: 0 0 0.15em currentColor;
+  }
+
+  /* ── Backgrounds ── */
+  .bg-layer { position: fixed; inset: 0; z-index: 0; }
+  .bg-gradient {
+    background:
+      radial-gradient(ellipse at 50% 120%, #6b3fa0 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 0%, #4a2080 0%, transparent 50%),
+      linear-gradient(180deg, #1a0a3e 0%, #2a1565 40%, #3d2070 70%, #5a3090 100%);
+    transition: filter 60s ease;
+  }
+  .bg-sunset {
+    background: linear-gradient(180deg,
+      transparent 0%, transparent 60%,
+      rgba(232,148,74,0.08) 75%, rgba(210,100,50,0.15) 85%, rgba(180,60,30,0.1) 100%);
+    transition: opacity 60s ease;
+  }
+  /* Time-of-day overlays */
+  .bg-timeshift {
+    position: fixed; inset: 0; z-index: 0;
+    transition: opacity 60s ease;
+    pointer-events: none;
+  }
+  .bg-timeshift.dawn {
+    background: linear-gradient(180deg,
+      rgba(40,20,60,0.3) 0%, rgba(180,100,60,0.15) 40%,
+      rgba(255,150,80,0.2) 70%, rgba(255,120,60,0.15) 100%);
+  }
+  .bg-timeshift.day {
+    background: linear-gradient(180deg,
+      rgba(30,40,100,0.15) 0%, rgba(60,80,160,0.1) 50%,
+      rgba(80,60,140,0.05) 100%);
+  }
+  .bg-timeshift.dusk {
+    background: linear-gradient(180deg,
+      rgba(60,20,80,0.2) 0%, rgba(200,80,40,0.2) 40%,
+      rgba(255,100,50,0.25) 70%, rgba(180,40,60,0.15) 100%);
+  }
+  .bg-timeshift.night {
+    background: linear-gradient(180deg,
+      rgba(5,5,20,0.4) 0%, rgba(10,5,30,0.35) 50%,
+      rgba(15,5,40,0.3) 100%);
+  }
+
+  /* ── CRT RGB phosphor effect ── */
+  .crt-overlay {
+    position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+  }
+  .crt-overlay::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 1px,
+      rgba(0,0,0,0.24) 1px,
+      rgba(0,0,0,0.24) 2px
+    );
+  }
+  .crt-overlay::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,0.35) 100%);
+  }
+
+  /* ── Layout ── */
+  .app {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    height: 100vh; width: 100vw;
+  }
+
+  /* ── Header ── */
+  .header {
+    position: relative; height: 9vh; min-height: 60px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5vw; z-index: 10; overflow: hidden;
+  }
+  .header-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+  .header-bg::before {
+    content: ''; position: absolute; inset: -30px -60px;
+    background: linear-gradient(155deg,
+      transparent 0%, transparent 30%,
+      var(--orange-peach) 30%, var(--orange-warm) 38%, var(--orange-hot) 42%,
+      rgba(30,15,60,0.85) 42%, rgba(30,15,60,0.95) 100%);
+  }
+  .header-bg::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(155deg,
+      transparent 0%, transparent 25%,
+      rgba(240,184,122,0.4) 25%, rgba(240,184,122,0.15) 30%, transparent 30%);
+  }
+  .header-left { display: flex; align-items: center; gap: 1.2vw; }
+  .logo {
+    background: linear-gradient(180deg, #3355bb 0%, #2244aa 50%, #1a3388 100%);
+    border: 2.5px solid var(--logo-border); border-radius: 0.8vw;
+    padding: 0.4vw 0.7vw;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .logo-text {
+    font-size: clamp(10px, 1.2vw, 18px); font-weight: bold; color: var(--bright);
+    letter-spacing: 0.5px; text-align: center; line-height: 1.15;
+    font-family: var(--sans); text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .header-title {
+    font-size: clamp(24px, 3.2vw, 46px); color: var(--yellow);
+    font-style: italic; font-family: var(--sans); font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  }
+  .header-temp {
+    flex: 1; text-align: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  }
+  .header-temp .ht-val {
+    font-size: clamp(22px, 3vw, 42px); font-weight: bold; color: var(--bright);
+    letter-spacing: 1px;
+  }
+  .header-temp .ht-feels {
+    font-size: clamp(10px, 1.2vw, 16px); color: rgba(232,232,232,0.55);
+    letter-spacing: 0.5px;
+  }
+  .header-right { text-align: right; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+  .header-time {
+    font-size: clamp(24px, 3vw, 42px); font-weight: bold; color: var(--bright); letter-spacing: 1px;
+  }
+  .header-date {
+    font-size: clamp(16px, 1.8vw, 26px); color: var(--bright); letter-spacing: 1.5px; margin-top: 0.2vh;
+  }
+
+  /* ── Content ── */
+  .content-area {
+    flex: 1; display: flex; align-items: stretch;
+    padding: 1vh 2.5vw;
+  }
+  .content-panel {
+    flex: 1; background: var(--panel-bg); border: 1px solid var(--panel-border);
+    border-radius: 2px; position: relative; overflow: hidden; clip-path: inset(0);
+    backdrop-filter: blur(2px);
+    box-shadow: inset 0 0 60px rgba(40,30,80,0.3), 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  /* ── Slides ── */
+  .slide {
+    position: absolute; inset: 0; padding: 3vh 3vw;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: none;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    animation: slideIn 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+    pointer-events: auto;
+  }
+  .slide.exiting {
+    opacity: 1;
+    animation: slideOut 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  }
+  @keyframes slideIn {
+    0% { transform: translateX(60%); opacity: 0; }
+    30% { opacity: 0.5; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    0% { transform: translateX(0); opacity: 1; }
+    70% { opacity: 0.5; }
+    100% { transform: translateX(-60%); opacity: 0; }
+  }
+
+  /* ── Current Conditions ── */
+  .current-layout {
+    display: flex; gap: 4vw; align-items: center; flex: 1;
+  }
+  .current-left { flex: 0 0 auto; }
+  .current-right { flex: 1; }
+  .temp-hero {
+    font-size: clamp(90px, 18vw, 240px); color: var(--bright); font-weight: bold;
+    text-shadow: 3px 4px 8px rgba(0,0,0,0.5); letter-spacing: 2px;
+    line-height: 1;
+  }
+  .condition-desc {
+    font-size: clamp(30px, 4vw, 60px); color: var(--yellow);
+    margin-top: 1vh; letter-spacing: 1px;
+  }
+  .weather-icon-large {
+    font-size: clamp(70px, 11vw, 150px);
+    margin-bottom: 1vh;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+  }
+  .conditions-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1vh 3vw;
+    font-size: clamp(26px, 3.3vw, 50px); line-height: 2;
+  }
+  .condition-label { color: rgba(232,232,232,0.65); }
+  .condition-value { color: var(--bright); }
+  .hilo-sub {
+    font-size: clamp(28px, 4vw, 56px);
+    font-weight: bold; margin-top: 0.3vh;
+    letter-spacing: 1px;
+  }
+  .hilo-sub .hi-val { color: #ffcc88; }
+  .hilo-sub .lo-val { color: #99ccff; }
+  .feels-like-sub {
+    font-size: clamp(18px, 2.2vw, 32px);
+    color: rgba(232,232,232,0.6);
+    margin-top: 0.5vh;
+    letter-spacing: 1px;
+  }
+
+  /* ── Today's Forecast ── */
+  .today-layout {
+    display: flex; gap: 4vw; align-items: center; flex: 1;
+  }
+  .today-left { flex: 0 0 auto; text-align: center; }
+  .today-right { flex: 1; }
+  .today-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.2vh 4vw;
+    font-size: clamp(28px, 3.3vw, 50px); line-height: 2;
+  }
+  .today-cond {
+    font-size: clamp(34px, 4.5vw, 64px); color: var(--bright);
+    margin-bottom: 1vh;
+  }
+  .today-icon {
+    font-size: clamp(70px, 11vw, 150px);
+    margin-bottom: 1vh;
+  }
+  .today-temp-big {
+    font-size: clamp(60px, 10vw, 140px); font-weight: bold; line-height: 1;
+  }
+  .today-hi { color: #ffcc88; }
+  .today-lo { color: #99ccff; }
+
+  /* ── Extended Forecast CARDS ── */
+  .forecast-cards {
+    display: flex; gap: 1.5vw;
+    align-items: stretch;
+  }
+  .forecast-card {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    background: linear-gradient(180deg, #2a4a8a 0%, #4a7abf 50%, #6a9ad8 100%);
+    border: 2px solid rgba(120, 160, 220, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .card-day {
+    width: 100%; text-align: center;
+    background: rgba(0,0,0,0.2);
+    padding: 1.5vh 0;
+    font-size: clamp(26px, 3.5vw, 50px);
+    font-weight: bold; color: var(--bright);
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-family: var(--sans);
+  }
+  .card-icon {
+    font-size: clamp(70px, 13vw, 180px);
+    padding: 2vh 0;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+  }
+  .card-cond {
+    font-size: clamp(18px, 2.4vw, 34px);
+    color: var(--white); text-align: center;
+    padding: 0.5vh 0.5vw 1.5vh;
+    line-height: 1.3;
+  }
+  .card-temps {
+    width: 100%; display: flex; justify-content: space-around;
+    padding: 2vh 0.5vw;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.15);
+  }
+  .card-hi, .card-lo {
+    text-align: center;
+    font-size: clamp(18px, 2.2vw, 30px);
+    color: rgba(232,232,232,0.6);
+  }
+  .card-hi span, .card-lo span {
+    display: block;
+    font-size: clamp(40px, 5.5vw, 78px);
+    font-weight: bold;
+  }
+  .card-hi span { color: #ffcc88; }
+  .card-lo span { color: #99ccff; }
+
+  /* ── Forecast Text ── */
+  .forecast-paragraph {
+    font-size: clamp(32px, 4vw, 58px); line-height: 1.5;
+    color: var(--white); letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    white-space: pre-wrap;
+  }
+
+  /* ── Regional Map ── */
+  .regional-map-wrap {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .regional-map-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    filter: saturate(0.3) brightness(0.55) contrast(1.1) sepia(0.4) hue-rotate(200deg);
+  }
+  .regional-map-labels {
+    position: absolute; inset: 0;
+  }
+  .map-city {
+    position: absolute; white-space: nowrap;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.7);
+  }
+  .map-city .city-name {
+    font-size: clamp(16px, 2vw, 28px);
+    color: var(--white); display: block;
+  }
+  .map-city .city-temp {
+    font-size: clamp(28px, 3.8vw, 54px);
+    color: #ffdd44; font-weight: bold;
+  }
+  .map-city .city-icon {
+    font-size: clamp(26px, 3.5vw, 48px);
+  }
+  .map-user {
+    position: absolute; white-space: nowrap;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+    font-size: clamp(18px, 2.2vw, 30px);
+    color: var(--yellow);
+  }
+
+  /* ── Almanac ── */
+  .almanac-layout {
+    display: flex; gap: 4vw; flex: 1;
+  }
+  .almanac-left, .almanac-right {
+    flex: 1; display: flex; flex-direction: column;
+  }
+  .almanac-section { margin-bottom: 1vh; }
+  .almanac-label {
+    font-size: clamp(18px, 2vw, 28px);
+    color: var(--yellow);
+    margin-bottom: 0.5vh; letter-spacing: 2px;
+  }
+  .almanac-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.3vh 3vw;
+    font-size: clamp(28px, 3.5vw, 52px); line-height: 1.6;
+  }
+  .moon-phases-row {
+    display: flex; justify-content: space-around; flex: 1;
+    align-items: center; gap: 2vw;
+  }
+  .moon-phase-card {
+    text-align: center; flex: 1;
+  }
+  .moon-phase-card .phase-label {
+    font-size: clamp(20px, 2.4vw, 34px);
+    color: var(--white); margin-bottom: 0.5vh;
+  }
+  .moon-phase-card .phase-emoji {
+    font-size: clamp(70px, 14vw, 190px);
+    line-height: 1; margin: 1.5vh 0;
+    filter: saturate(0.3) brightness(1.1);
+  }
+  .moon-phase-card .phase-date {
+    font-size: clamp(20px, 2.4vw, 34px);
+    color: var(--yellow);
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-section { flex-shrink: 0; }
+  .bottom-stripe {
+    height: 0.5vh; min-height: 3px;
+    background: linear-gradient(90deg, var(--orange-hot), var(--orange-warm) 40%, var(--orange-peach) 70%, var(--orange-warm));
+  }
+  .bottom-bar {
+    background: var(--bottom-bg); height: 8.5vh; min-height: 56px;
+    display: flex; align-items: center; padding: 0 2.5vw;
+    position: relative;
+    border-top: 1px solid rgba(100,90,160,0.3);
+    transition: background 0.5s ease;
+  }
+  .bottom-bar.alert-warning {
+    background: #8a7a00;
+  }
+  .bottom-bar.alert-watch {
+    background: #8a1a1a;
+  }
+  .ticker-track {
+    display: flex; white-space: nowrap;
+    animation: tickerScroll var(--ticker-duration, 30s) linear infinite;
+  }
+  @keyframes tickerScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-text {
+    font-size: clamp(26px, 3.2vw, 48px); color: var(--white);
+    letter-spacing: 1.5px; white-space: nowrap;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    padding-right: 8vw;
+  }
+  .ticker-text.alert-warning {
+    color: #ffee00;
+    font-weight: bold;
+  }
+  .ticker-text.alert-watch {
+    color: #ff4444;
+    font-weight: bold;
+  }
+  .ticker-sep {
+    padding: 0 4vw;
+    color: rgba(232,232,232,0.3);
+    font-size: clamp(26px, 3.2vw, 48px);
+  }
+  .location-name {
+    position: absolute; right: 2.5vw;
+    font-size: clamp(10px, 1vw, 14px);
+    color: rgba(232,232,232,0.4); letter-spacing: 1px;
+  }
+
+  /* ── Loading ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 500;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--bg-deep); transition: opacity 0.6s ease;
+  }
+  .loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-logo {
+    background: linear-gradient(180deg, #3355bb 0%, #2244aa 50%, #1a3388 100%);
+    border: 3px solid var(--logo-border); border-radius: 14px;
+    padding: 16px 24px; margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .loading-logo .logo-text { font-size: 22px; }
+  .loading-msg {
+    font-size: 18px; color: var(--white); letter-spacing: 2px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  /* ── Hourly Forecast ── */
+  .hourly-container {
+    display: flex; gap: 0.5vw; flex: 1;
+    align-items: stretch; justify-content: center;
+  }
+  .hourly-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.5vh;
+  }
+  .hourly-time {
+    font-size: clamp(18px, 2.2vw, 30px);
+    color: rgba(232,232,232,0.6);
+  }
+  .hourly-icon {
+    font-size: clamp(40px, 7vw, 90px);
+  }
+  .hourly-temp {
+    font-size: clamp(28px, 4vw, 56px);
+    font-weight: bold; color: var(--bright);
+  }
+  .hourly-divider {
+    width: 1px; background: rgba(120,110,180,0.2);
+    align-self: stretch; margin: 2vh 0;
+  }
+
+  /* ── Radar slide ── */
+  .radar-map-wrap {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .radar-map-bg {
+    position: absolute; inset: 0;
+    filter: saturate(0.3) brightness(0.5) contrast(1.1) sepia(0.4) hue-rotate(200deg);
+  }
+  .radar-map-bg img { position: absolute; width: 256px; height: 256px; }
+  .radar-overlay {
+    position: absolute; inset: 0;
+  }
+  .radar-overlay img { position: absolute; width: 256px; height: 256px; opacity: 0.7; }
+  .radar-timestamp {
+    position: absolute; bottom: 1.5vh; left: 2vw;
+    font-size: clamp(14px, 1.6vw, 22px);
+    color: rgba(232,232,232,0.6);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  }
+  .radar-legend {
+    position: absolute; bottom: 1.5vh; right: 2vw;
+    display: flex; gap: 0.8vw; align-items: center;
+    font-size: clamp(10px, 1vw, 14px);
+    color: rgba(232,232,232,0.6);
+  }
+  .radar-legend-item {
+    display: flex; align-items: center; gap: 0.3vw;
+  }
+  .radar-legend-swatch {
+    width: clamp(8px, 0.8vw, 12px); height: clamp(8px, 0.8vw, 12px);
+    border-radius: 2px;
+  }
+
+  /* ── Alert slide ── */
+  .alert-slide {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; overflow: hidden;
+  }
+  .alert-no-alerts {
+    font-size: clamp(20px, 2.4vw, 34px);
+    color: rgba(232,232,232,0.3); text-align: center;
+  }
+  .alert-event-title {
+    font-size: clamp(24px, 3vw, 44px);
+    font-weight: bold; margin-bottom: 2vh;
+    letter-spacing: 1px;
+  }
+  .alert-event-title.warning { color: #ffee00; }
+  .alert-event-title.watch { color: #ff4444; }
+  .alert-event-title.advisory { color: #ff9944; }
+  .alert-description {
+    font-size: clamp(18px, 2.2vw, 32px);
+    line-height: 1.5; color: var(--white);
+    white-space: pre-wrap;
+    overflow: hidden;
+  }
+
+  /* ── Music button ── */
+  .music-btn {
+    position: fixed; bottom: 1.5vh; right: 1.5vw;
+    z-index: 900; cursor: pointer;
+    background: #2a8a2a; border: 2px solid #4abf4a;
+    border-radius: 4px; padding: 0.5vw 0.8vw;
+    color: var(--bright); font-family: var(--mono);
+    font-size: clamp(14px, 1.4vw, 20px);
+    text-transform: uppercase; letter-spacing: 1px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    transition: background 0.3s;
+    display: flex; align-items: center; gap: 0.4vw;
+  }
+  .music-btn:hover { background: #35a535; }
+  .music-btn.muted { background: #8a2a2a; border-color: #bf4a4a; }
+  .music-btn.muted:hover { background: #a53535; }
+
+  .slide-dots {
+    position: absolute; bottom: 0.8vh; right: 0.8vw;
+    display: flex; gap: 0.4vw; z-index: 5;
+  }
+  .dot {
+    width: clamp(5px, 0.5vw, 8px); height: clamp(5px, 0.5vw, 8px);
+    border-radius: 50%; background: rgba(255,255,255,0.2);
+    transition: background 0.4s ease;
+  }
+  .dot.active { background: var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="bg-layer bg-gradient"></div>
+<div class="bg-layer bg-sunset"></div>
+<div class="bg-timeshift" id="bgTimeshift"></div>
+<div class="crt-overlay"></div>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo"><div class="logo-text">WEATHER</div></div>
+  <div class="loading-msg">ACQUIRING LOCAL DATA...</div>
+</div>
+
+<div class="app" id="app" style="opacity:0;">
+  <div class="header">
+    <div class="header-bg"></div>
+    <div class="header-left">
+      <div class="logo"><div class="logo-text">WEATHER</div></div>
+      <div class="header-title" id="slideLabel">Current Conditions</div>
+    </div>
+    <div class="header-temp" id="headerTemp"></div>
+    <div class="header-right">
+      <div class="header-time" id="clock"></div>
+      <div class="header-date" id="dateDisplay"></div>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="content-panel">
+
+      <!-- Slide 0: Current Conditions -->
+      <div class="slide" id="slide0">
+        <div class="current-layout">
+          <div class="current-left">
+            <div class="weather-icon-large" id="currentIcon"></div>
+            <div class="temp-hero" id="currentTemp">--°F</div>
+            <div class="hilo-sub"><span class="hi-val" id="currentHi">--°</span> / <span class="lo-val" id="currentLo">--°</span></div>
+            <div class="condition-desc" id="currentDesc">--</div>
+            <div class="feels-like-sub" id="currentFeelsLike">FEELS LIKE --°F</div>
+          </div>
+          <div class="current-right">
+            <div class="conditions-grid">
+              <span class="condition-label">HUMIDITY</span>
+              <span class="condition-value" id="currentHumidity">--%</span>
+              <span class="condition-label">WIND</span>
+              <span class="condition-value" id="currentWind">-- MPH</span>
+              <span class="condition-label">DEW POINT</span>
+              <span class="condition-value" id="currentDewpoint">--°F</span>
+              <span class="condition-label">VISIBILITY</span>
+              <span class="condition-value" id="currentVisibility">-- MI</span>
+              <span class="condition-label">PRESSURE</span>
+              <span class="condition-value" id="currentPressure">-- IN</span>
+              <span class="condition-label">UV INDEX</span>
+              <span class="condition-value" id="currentUV">--</span>
+              <span class="condition-label">SUNRISE</span>
+              <span class="condition-value" id="currentSunrise">--</span>
+              <span class="condition-label">SUNSET</span>
+              <span class="condition-value" id="currentSunset">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 1: Extended Forecast (Cards) -->
+      <div class="slide" id="slide1">
+        <div class="forecast-cards" id="extendedForecast"></div>
+      </div>
+
+      <!-- Slide 2: Local Forecast Text -->
+      <div class="slide" id="slide2">
+        <div class="forecast-paragraph" id="forecastText"></div>
+      </div>
+
+      <!-- Slide 3: Regional Observations (map) -->
+      <div class="slide" id="slide3" style="padding:0;">
+        <div class="regional-map-wrap">
+          <div class="regional-map-bg" id="mapBg"></div>
+          <div class="regional-map-labels" id="mapLabels"></div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Regional Radar -->
+      <div class="slide" id="slide4" style="padding:0;">
+        <div class="radar-map-wrap">
+          <div class="radar-map-bg" id="radarMapBg"></div>
+          <div class="radar-overlay" id="radarOverlay"></div>
+          <div class="radar-timestamp" id="radarTime"></div>
+          <div class="radar-legend">
+            <div class="radar-legend-item"><div class="radar-legend-swatch" style="background:#00ff00"></div>LIGHT</div>
+            <div class="radar-legend-item"><div class="radar-legend-swatch" style="background:#ffff00"></div>MOD</div>
+            <div class="radar-legend-item"><div class="radar-legend-swatch" style="background:#ff0000"></div>HEAVY</div>
+            <div class="radar-legend-item"><div class="radar-legend-swatch" style="background:#ff00ff"></div>SEVERE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Almanac -->
+      <div class="slide" id="slide5">
+        <div class="almanac-section">
+          <div class="almanac-grid" style="grid-template-columns: auto auto auto; justify-content: center; gap: 0.3vh 6vw;">
+            <span></span>
+            <span class="condition-label" style="text-align:center;color:var(--yellow);" id="almDayLabel">TODAY</span>
+            <span class="condition-label" style="text-align:center;color:var(--yellow);" id="almDay2Label">TOMORROW</span>
+            <span class="condition-label">SUNRISE:</span>
+            <span class="condition-value" style="text-align:center" id="almSunrise">--</span>
+            <span class="condition-value" style="text-align:center" id="almSunrise2">--</span>
+            <span class="condition-label">SUNSET:</span>
+            <span class="condition-value" style="text-align:center" id="almSunset">--</span>
+            <span class="condition-value" style="text-align:center" id="almSunset2">--</span>
+          </div>
+        </div>
+        <div class="almanac-section" style="margin-top: 5vh;">
+          <div class="moon-phases-row" id="moonPhasesRow"></div>
+        </div>
+      </div>
+
+      <!-- Slide 6: Weather Alert (only shown when active alerts) -->
+      <div class="slide" id="slide6">
+        <div class="alert-slide" id="alertSlideContent">
+          <div class="alert-no-alerts">NO ACTIVE ALERTS</div>
+        </div>
+      </div>
+
+      <div class="slide-dots" id="slideDots"></div>
+    </div>
+  </div>
+
+  <div class="bottom-section">
+    <div class="bottom-stripe"></div>
+    <div class="bottom-bar">
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-text">LOADING WEATHER DATA...</span>
+      </div>
+      <div class="location-name" id="locationName"></div>
+    </div>
+  </div>
+</div>
+
+<button class="music-btn muted" id="musicBtn" onclick="toggleMusic()">
+  <span id="musicIcon">🔇</span>
+</button>
+
+<!--
+  OPTIONAL: Drop a music.mp3 in this folder for real Weather Channel jazz.
+  If no file is found, the built-in ambient synth plays instead.
+-->
+<audio id="bgMusic" loop preload="auto">
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+// Fallback location if geolocation is denied/unavailable
+const DEFAULT_LAT = 35.1113;
+const DEFAULT_LON = -81.2265; // Clover, SC
+const SLIDE_INTERVAL = 8000;
+const TICKER_INTERVAL = 4500;
+const DATA_REFRESH = 600000; // weather API refresh every 10 min
+const PAGE_RELOAD = 3600000; // full page reload every hour
+
+// Major US cities database for regional observations
+// Finds the nearest 8 major cities to the user's location
+const MAJOR_CITIES = [
+  {name:'NEW YORK',lat:40.7128,lon:-74.006},{name:'LOS ANGELES',lat:34.0522,lon:-118.2437},
+  {name:'CHICAGO',lat:41.8781,lon:-87.6298},{name:'HOUSTON',lat:29.7604,lon:-95.3698},
+  {name:'PHOENIX',lat:33.4484,lon:-112.074},{name:'PHILADELPHIA',lat:39.9526,lon:-75.1652},
+  {name:'SAN ANTONIO',lat:29.4241,lon:-98.4936},{name:'SAN DIEGO',lat:32.7157,lon:-117.1611},
+  {name:'DALLAS',lat:32.7767,lon:-96.797},{name:'AUSTIN',lat:30.2672,lon:-97.7431},
+  {name:'JACKSONVILLE',lat:30.3322,lon:-81.6557},{name:'SAN JOSE',lat:37.3382,lon:-121.8863},
+  {name:'COLUMBUS',lat:39.9612,lon:-82.9988},{name:'CHARLOTTE',lat:35.2271,lon:-80.8431},
+  {name:'INDIANAPOLIS',lat:39.7684,lon:-86.1581},{name:'SAN FRANCISCO',lat:37.7749,lon:-122.4194},
+  {name:'SEATTLE',lat:47.6062,lon:-122.3321},{name:'DENVER',lat:39.7392,lon:-104.9903},
+  {name:'WASHINGTON DC',lat:38.9072,lon:-77.0369},{name:'NASHVILLE',lat:36.1627,lon:-86.7816},
+  {name:'OKLAHOMA CITY',lat:35.4676,lon:-97.5164},{name:'BOSTON',lat:42.3601,lon:-71.0589},
+  {name:'PORTLAND',lat:45.5152,lon:-122.6784},{name:'LAS VEGAS',lat:36.1699,lon:-115.1398},
+  {name:'MEMPHIS',lat:35.1495,lon:-90.049},{name:'LOUISVILLE',lat:38.2527,lon:-85.7585},
+  {name:'BALTIMORE',lat:39.2904,lon:-76.6122},{name:'MILWAUKEE',lat:43.0389,lon:-87.9065},
+  {name:'ALBUQUERQUE',lat:35.0844,lon:-106.6504},{name:'TUCSON',lat:32.2226,lon:-110.9747},
+  {name:'ATLANTA',lat:33.749,lon:-84.388},{name:'MIAMI',lat:25.7617,lon:-80.1918},
+  {name:'TAMPA',lat:27.9506,lon:-82.4572},{name:'ORLANDO',lat:28.5383,lon:-81.3792},
+  {name:'RALEIGH',lat:35.7796,lon:-78.6382},{name:'RICHMOND',lat:37.5407,lon:-77.436},
+  {name:'PITTSBURGH',lat:40.4406,lon:-79.9959},{name:'CINCINNATI',lat:39.1031,lon:-84.512},
+  {name:'KANSAS CITY',lat:39.0997,lon:-94.5786},{name:'ST LOUIS',lat:38.627,lon:-90.1994},
+  {name:'CLEVELAND',lat:41.4993,lon:-81.6944},{name:'MINNEAPOLIS',lat:44.9778,lon:-93.265},
+  {name:'NEW ORLEANS',lat:29.9511,lon:-90.0715},{name:'DETROIT',lat:42.3314,lon:-83.0458},
+  {name:'SALT LAKE CITY',lat:40.7608,lon:-111.891},{name:'BUFFALO',lat:42.8864,lon:-78.8784},
+  {name:'SYRACUSE',lat:43.0481,lon:-76.1474},{name:'HARTFORD',lat:41.7658,lon:-72.6734},
+  {name:'CHARLESTON',lat:32.7765,lon:-79.9311},{name:'SAVANNAH',lat:32.0809,lon:-81.0912},
+  {name:'COLUMBIA',lat:34.0007,lon:-81.0348},{name:'GREENVILLE',lat:34.8526,lon:-82.394},
+  {name:'KNOXVILLE',lat:35.9606,lon:-83.9207},{name:'BIRMINGHAM',lat:33.5186,lon:-86.8104},
+  {name:'LITTLE ROCK',lat:34.7465,lon:-92.2896},{name:'OMAHA',lat:41.2565,lon:-95.9345},
+  {name:'BOISE',lat:43.615,lon:-116.2023},{name:'RENO',lat:39.5296,lon:-119.8138},
+  {name:'SACRAMENTO',lat:38.5816,lon:-121.4944},{name:'FRESNO',lat:36.7378,lon:-119.7871},
+  {name:'SPOKANE',lat:47.6588,lon:-117.426},{name:'RAPID CITY',lat:44.0805,lon:-103.231},
+  {name:'EL PASO',lat:31.7619,lon:-106.485},{name:'ANCHORAGE',lat:61.2181,lon:-149.9003},
+  {name:'HONOLULU',lat:21.3069,lon:-157.8583},{name:'BURLINGTON',lat:44.4759,lon:-73.2121},
+  {name:'BANGOR',lat:44.8016,lon:-68.7712},{name:'HARRISBURG',lat:40.2732,lon:-76.8867},
+  {name:'ATLANTIC CITY',lat:39.3643,lon:-74.4229},{name:'NORFOLK',lat:36.8508,lon:-76.2859},
+  {name:'WILMINGTON',lat:34.2257,lon:-77.9447},{name:'ASHEVILLE',lat:35.5951,lon:-82.5515},
+  {name:'MYRTLE BEACH',lat:33.6891,lon:-78.8867},{name:'FAYETTEVILLE',lat:35.0527,lon:-78.8784},
+  {name:'ROCK HILL',lat:34.9249,lon:-81.025},{name:'GASTONIA',lat:35.2621,lon:-81.1873},
+  {name:'GREENSBORO',lat:36.0726,lon:-79.792},{name:'FLORENCE',lat:34.1954,lon:-79.7626},
+];
+
+// Weather emoji mapping
+function getWeatherEmoji(code, isNight) {
+  if (code === 0) return isNight ? '🌙' : '☀️';
+  if (code === 1) return isNight ? '🌙' : '🌤️';
+  if (code === 2) return isNight ? '☁️' : '⛅';
+  if (code === 3) return '☁️';
+  if (code === 45 || code === 48) return '🌫️';
+  if (code >= 51 && code <= 57) return '🌧️';
+  if (code >= 61 && code <= 67) return '🌧️';
+  if (code >= 71 && code <= 77) return '❄️';
+  if (code >= 80 && code <= 82) return '🌦️';
+  if (code >= 85 && code <= 86) return '🌨️';
+  if (code >= 95) return '⛈️';
+  return '☁️';
+}
+
+const WMO = {
+  0:'CLEAR',1:'MOSTLY CLEAR',2:'PARTLY CLOUDY',3:'OVERCAST',
+  45:'FOG',48:'RIME FOG',51:'LT DRIZZLE',53:'DRIZZLE',55:'HVY DRIZZLE',
+  56:'LT FRZ DRIZZLE',57:'FRZ DRIZZLE',61:'LT RAIN',63:'RAIN',65:'HVY RAIN',
+  66:'LT FRZ RAIN',67:'FRZ RAIN',71:'LT SNOW',73:'SNOW',75:'HVY SNOW',
+  77:'SNOW GRAINS',80:'LT SHOWERS',81:'SHOWERS',82:'HVY SHOWERS',
+  85:'LT SNOW SHWRS',86:'HVY SNOW SHWRS',95:'T-STORMS',96:'T-STORMS/HAIL',99:'SEV T-STORMS'
+};
+const WMO_LONG = {
+  0:'CLEAR SKIES',1:'MAINLY CLEAR SKIES',2:'PARTLY CLOUDY SKIES',3:'OVERCAST SKIES',
+  45:'FOGGY CONDITIONS',48:'RIME FOG',51:'LIGHT DRIZZLE',53:'MODERATE DRIZZLE',55:'DENSE DRIZZLE',
+  56:'LIGHT FREEZING DRIZZLE',57:'DENSE FREEZING DRIZZLE',
+  61:'LIGHT RAIN',63:'MODERATE RAIN',65:'HEAVY RAIN',
+  66:'LIGHT FREEZING RAIN',67:'HEAVY FREEZING RAIN',
+  71:'LIGHT SNOW',73:'MODERATE SNOW',75:'HEAVY SNOW',77:'SNOW GRAINS',
+  80:'SCATTERED SHOWERS',81:'RAIN SHOWERS',82:'HEAVY RAIN SHOWERS',
+  85:'LIGHT SNOW SHOWERS',86:'HEAVY SNOW SHOWERS',
+  95:'THUNDERSTORMS',96:'THUNDERSTORMS WITH HAIL',99:'SEVERE THUNDERSTORMS'
+};
+// Card-friendly short descriptions
+const WMO_CARD = {
+  0:'Clear',1:'Mostly Clear',2:'Partly Cloudy',3:'Cloudy',
+  45:'Fog',48:'Rime Fog',51:'Lt Drizzle',53:'Drizzle',55:'Hvy Drizzle',
+  56:'Frz Drizzle',57:'Frz Drizzle',61:'Lt Rain',63:'Rain',65:'Hvy Rain',
+  66:'Frz Rain',67:'Frz Rain',71:'Lt Snow',73:'Snow',75:'Hvy Snow',
+  77:'Snow Grns',80:'Showers',81:'Showers',82:'Hvy Showers',
+  85:'Snow Shwrs',86:'Hvy Snow',95:'T-Storms',96:'T-Storms',99:'Sev Storms'
+};
+
+const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DAYS_FULL = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const WIND_DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+
+let weatherData = null, metroData = [], currentSlide = 0, currentTicker = 0;
+let lat = DEFAULT_LAT, lon = DEFAULT_LON, locationStr = '';
+let tickerItems = [];
+
+const degToCompass = d => WIND_DIRS[Math.round(d/22.5)%16];
+const cToF = c => Math.round(c*9/5+32);
+const kmhToMph = k => Math.round(k*0.621371);
+const kmToMi = k => (k*0.621371).toFixed(1);
+const hpaToInhg = h => (h*0.02953).toFixed(2);
+
+function formatTime(d) {
+  let h=d.getHours(); const m=String(d.getMinutes()).padStart(2,'0');
+  const s=String(d.getSeconds()).padStart(2,'0'); const ap=h>=12?'PM':'AM';
+  h=h%12||12; return `${h}:${m}:${s} ${ap}`;
+}
+function formatDate(d) { return `${DAYS[d.getDay()]} ${MONTHS[d.getMonth()]} ${d.getDate()}`; }
+function formatSunTime(iso) {
+  const d=new Date(iso); let h=d.getHours();
+  const m=String(d.getMinutes()).padStart(2,'0'); const ap=h>=12?'PM':'AM';
+  h=h%12||12; return `${h}:${m} ${ap}`;
+}
+
+// Moon phase calculation
+function getMoonPhase(date) {
+  const y = date.getFullYear(), mo = date.getMonth()+1, day = date.getDate();
+  const jd = Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(mo >= 3 ? mo+1 : mo+13)) + day +
+    (mo < 3 ? -1 : 0) * Math.floor((y + (mo < 3 ? -1 : 0)) / 100) +
+    Math.floor(Math.floor((y + (mo < 3 ? -1 : 0)) / 100) / 4) - 1524.5;
+  // Simplified: use known new moon epoch
+  const ip = ((jd - 2451550.1) / 29.530588853) % 1;
+  const age = ip < 0 ? ip + 1 : ip;
+  const illum = Math.round((1 - Math.cos(age * 2 * Math.PI)) / 2 * 100);
+
+  let phase, emoji;
+  if (age < 0.0625)      { phase='NEW MOON'; emoji='🌑'; }
+  else if (age < 0.1875) { phase='WAXING CRESCENT'; emoji='🌒'; }
+  else if (age < 0.3125) { phase='FIRST QUARTER'; emoji='🌓'; }
+  else if (age < 0.4375) { phase='WAXING GIBBOUS'; emoji='🌔'; }
+  else if (age < 0.5625) { phase='FULL MOON'; emoji='🌕'; }
+  else if (age < 0.6875) { phase='WANING GIBBOUS'; emoji='🌖'; }
+  else if (age < 0.8125) { phase='LAST QUARTER'; emoji='🌗'; }
+  else if (age < 0.9375) { phase='WANING CRESCENT'; emoji='🌘'; }
+  else                    { phase='NEW MOON'; emoji='🌑'; }
+  return { phase, emoji, illumination: illum };
+}
+
+// Time-of-day background
+function updateTimeBackground() {
+  const hr = new Date().getHours();
+  const el = document.getElementById('bgTimeshift');
+  el.classList.remove('dawn', 'day', 'dusk', 'night');
+  if (hr >= 5 && hr < 8) el.classList.add('dawn');
+  else if (hr >= 8 && hr < 17) el.classList.add('day');
+  else if (hr >= 17 && hr < 20) el.classList.add('dusk');
+  else el.classList.add('night');
+}
+setInterval(updateTimeBackground, 60000);
+updateTimeBackground();
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = formatTime(now);
+  document.getElementById('dateDisplay').textContent = formatDate(now);
+}
+setInterval(updateClock, 1000); updateClock();
+
+// Geolocation
+async function getLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve({lat:DEFAULT_LAT,lon:DEFAULT_LON}); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({lat:p.coords.latitude, lon:p.coords.longitude}),
+      () => resolve({lat:DEFAULT_LAT, lon:DEFAULT_LON}), {timeout:8000}
+    );
+  });
+}
+
+async function reverseGeocode(lt, ln) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lt}&lon=${ln}&format=json&zoom=14`);
+    const d = await r.json();
+    const a = d.address;
+    let city = a.city || a.town || a.village || a.hamlet || '';
+    if (!city && a.county) city = a.county.replace(/ County$/i, '').replace(/ Parish$/i, '');
+    const state = a.state||'';
+    locationStr = city&&state ? `${city}, ${state}` : city||state||`${lt.toFixed(2)}, ${ln.toFixed(2)}`;
+    document.getElementById('locationName').textContent = locationStr.toUpperCase();
+    document.title = `Weather — ${locationStr}`;
+  } catch {
+    locationStr = `${lt.toFixed(2)}, ${ln.toFixed(2)}`;
+    document.getElementById('locationName').textContent = locationStr;
+  }
+}
+
+
+// Fetch weather
+async function fetchWeather() {
+  const params = [
+    `latitude=${lat}`, `longitude=${lon}`,
+    'current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure,uv_index,is_day',
+    'hourly=visibility,dew_point_2m,temperature_2m,weather_code,is_day',
+    'daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max,wind_direction_10m_dominant',
+    'temperature_unit=celsius','wind_speed_unit=kmh','timezone=auto','forecast_days=7'
+  ].join('&');
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+    weatherData = await r.json();
+    updateAllSlides();
+  } catch(e) { console.error('Weather fetch failed:', e); }
+}
+
+// Find nearest major cities and fetch their weather
+function findNearestCities(userLat, userLon, count) {
+  const toRad = d => d * Math.PI / 180;
+  const dist = (lat1, lon1, lat2, lon2) => {
+    const R = 3959; // miles
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  };
+  return MAJOR_CITIES
+    .map(c => ({ ...c, distance: dist(userLat, userLon, c.lat, c.lon) }))
+    .filter(c => c.distance > 15) // skip if too close (probably user's own city)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, count);
+}
+
+async function fetchMetroConditions() {
+  const nearest = findNearestCities(lat, lon, 6);
+  if (nearest.length === 0) return;
+
+  const lats = nearest.map(c => c.lat).join(',');
+  const lons = nearest.map(c => c.lon).join(',');
+
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&temperature_unit=celsius&timezone=auto&forecast_days=1`);
+    const data = await r.json();
+    const results = Array.isArray(data) ? data : [data];
+
+    metroData = nearest.map((city, i) => ({
+      name: city.name,
+      temp: cToF(results[i].current.temperature_2m),
+      hi: cToF(results[i].daily.temperature_2m_max[0]),
+      lo: cToF(results[i].daily.temperature_2m_min[0]),
+      code: results[i].current.weather_code,
+      isDay: results[i].current.is_day,
+      cond: WMO[results[i].current.weather_code] || 'N/A'
+    }));
+  } catch(e) { console.error('Metro fetch failed:', e); }
+
+  updateRegionalSlide();
+}
+
+// ── Slide system ──
+const SLIDE_LABELS = [
+  'Current Conditions', 'Extended Forecast',
+  'Local Forecast', 'Regional Observations', 'Regional Radar', 'Almanac', 'Weather Alerts'
+];
+let TOTAL_SLIDES = 6; // 6 normally, 7 when alerts are active
+
+function initDots() {
+  const c = document.getElementById('slideDots'); c.innerHTML = '';
+  for (let i = 0; i < TOTAL_SLIDES; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot'; c.appendChild(d);
+  }
+}
+
+let previousSlide = -1;
+
+function showSlide(index) {
+  const slides = document.querySelectorAll('.slide');
+  slides.forEach((s, i) => {
+    if (i === index) {
+      s.classList.remove('exiting');
+      s.classList.add('active');
+    } else if (s.classList.contains('active')) {
+      // Animate the old slide out
+      s.classList.remove('active');
+      s.classList.add('exiting');
+      setTimeout(() => s.classList.remove('exiting'), 1000);
+    } else {
+      s.classList.remove('active', 'exiting');
+    }
+  });
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===index));
+  document.getElementById('slideLabel').textContent = SLIDE_LABELS[index];
+  previousSlide = index;
+}
+
+function nextSlide() { currentSlide = (currentSlide+1)%TOTAL_SLIDES; showSlide(currentSlide); }
+
+// ══════════════════════════════════════
+// Music: tries music.mp3 first, falls back to Web Audio synth
+// ══════════════════════════════════════
+let musicPlaying = false;
+let audioCtx = null;
+let synthNodes = [];
+let usingFile = false;
+
+function startSynth() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  stopSynth();
+
+  const master = audioCtx.createGain();
+  master.gain.value = 0.12;
+  master.connect(audioCtx.destination);
+
+  // Warm pad chord (Cmaj7 → Fmaj7 → Dm7 → G7 looping)
+  const chords = [
+    [261.6, 329.6, 392.0, 493.9],  // Cmaj7
+    [349.2, 440.0, 523.3, 659.3],  // Fmaj7
+    [293.7, 349.2, 440.0, 523.3],  // Dm7
+    [392.0, 493.9, 587.3, 698.5],  // G7
+  ];
+
+  let chordIdx = 0;
+  const oscs = [];
+
+  // Create 4 oscillators for the chord
+  for (let i = 0; i < 4; i++) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = chords[0][i];
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = i === 0 ? 0.3 : 0.2; // root slightly louder
+
+    // Gentle filter for warmth
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800 + i * 100;
+    filter.Q.value = 0.5;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    osc.start();
+    oscs.push({ osc, gain, filter });
+    synthNodes.push(osc, gain, filter);
+  }
+
+  // Slow LFO for gentle vibrato
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfo.frequency.value = 0.15;
+  lfoGain.gain.value = 2;
+  lfo.connect(lfoGain);
+  oscs.forEach(o => lfoGain.connect(o.osc.frequency));
+  lfo.start();
+  synthNodes.push(lfo, lfoGain);
+
+  // Chord changes every 4 seconds
+  const chordInterval = setInterval(() => {
+    chordIdx = (chordIdx + 1) % chords.length;
+    const now = audioCtx.currentTime;
+    oscs.forEach((o, i) => {
+      o.osc.frequency.linearRampToValueAtTime(chords[chordIdx][i], now + 1.5);
+    });
+  }, 4000);
+
+  synthNodes.push(master);
+  synthNodes._interval = chordInterval;
+}
+
+function stopSynth() {
+  if (synthNodes._interval) clearInterval(synthNodes._interval);
+  synthNodes.forEach(n => { try { n.disconnect(); if (n.stop) n.stop(); } catch {} });
+  synthNodes = [];
+}
+
+function setMusicUI(playing) {
+  const btn = document.getElementById('musicBtn');
+  const icon = document.getElementById('musicIcon');
+  if (playing) {
+    btn.classList.remove('muted');
+    icon.textContent = '🔊';
+  } else {
+    btn.classList.add('muted');
+    icon.textContent = '🔇';
+  }
+  musicPlaying = playing;
+}
+
+// Track if music file is available
+let hasAudioFile = false;
+(function checkAudioFile() {
+  const audio = document.getElementById('bgMusic');
+  if (!audio) return;
+  audio.addEventListener('canplaythrough', () => { hasAudioFile = true; });
+  audio.addEventListener('error', () => { hasAudioFile = false; });
+  // Also check the source element
+  const src = audio.querySelector('source');
+  if (src) src.addEventListener('error', () => { hasAudioFile = false; });
+})();
+
+function toggleMusic() {
+  if (musicPlaying) {
+    document.getElementById('bgMusic').pause();
+    stopSynth();
+    setMusicUI(false);
+    return;
+  }
+
+  if (hasAudioFile) {
+    const audio = document.getElementById('bgMusic');
+    audio.volume = 0.4;
+    audio.play().then(() => {
+      setMusicUI(true);
+    }).catch(() => {
+      // Fallback to synth
+      startSynth();
+      setMusicUI(true);
+    });
+  } else {
+    // No file — use synth directly
+    startSynth();
+    setMusicUI(true);
+  }
+}
+
+function updateAllSlides() {
+  if (!weatherData) return;
+  const c = weatherData.current, d = weatherData.daily, h = weatherData.hourly;
+  const nowHour = new Date().getHours();
+  const isNight = !c.is_day;
+
+  // Slide 0: Current Conditions
+  // Header persistent temp
+  document.getElementById('headerTemp').innerHTML = `<div class="ht-val">${cToF(c.temperature_2m)}°F</div><div class="ht-feels">FEELS LIKE ${cToF(c.apparent_temperature)}°F</div>`;
+
+  document.getElementById('currentIcon').textContent = getWeatherEmoji(c.weather_code, isNight);
+  document.getElementById('currentTemp').textContent = `${cToF(c.temperature_2m)}°F`;
+  document.getElementById('currentDesc').textContent = WMO_LONG[c.weather_code]||'N/A';
+  document.getElementById('currentHumidity').textContent = `${c.relative_humidity_2m}%`;
+  document.getElementById('currentWind').textContent = `${degToCompass(c.wind_direction_10m)} ${kmhToMph(c.wind_speed_10m)} MPH`;
+  document.getElementById('currentFeelsLike').textContent = `FEELS LIKE ${cToF(c.apparent_temperature)}°F`;
+  document.getElementById('currentHi').textContent = `${cToF(d.temperature_2m_max[0])}°`;
+  document.getElementById('currentLo').textContent = `${cToF(d.temperature_2m_min[0])}°`;
+  const uvVal = Math.round(c.uv_index);
+  const uvEl = document.getElementById('currentUV');
+  uvEl.textContent = `${uvVal}`;
+  uvEl.style.color = uvVal >= 8 ? '#ff4444' : uvVal >= 6 ? '#ffdd44' : '';
+  document.getElementById('currentPressure').textContent = `${hpaToInhg(c.surface_pressure)} IN`;
+  document.getElementById('currentSunrise').textContent = formatSunTime(d.sunrise[0]);
+  document.getElementById('currentSunset').textContent = formatSunTime(d.sunset[0]);
+  if (h?.visibility?.[nowHour] != null)
+    document.getElementById('currentVisibility').textContent = `${kmToMi(h.visibility[nowHour]/1000)} MI`;
+  if (h?.dew_point_2m?.[nowHour] != null)
+    document.getElementById('currentDewpoint').textContent = `${cToF(h.dew_point_2m[nowHour])}°F`;
+
+  const todayHi = cToF(d.temperature_2m_max[0]), todayLo = cToF(d.temperature_2m_min[0]);
+  const todayWind = kmhToMph(d.wind_speed_10m_max[0]);
+  const todayDir = degToCompass(d.wind_direction_10m_dominant[0]);
+  const sunrise = formatSunTime(d.sunrise[0]), sunset = formatSunTime(d.sunset[0]);
+
+  // Slide 1: Extended Forecast CARDS
+  let cards = '';
+  for (let i = 1; i <= 3 && i < d.time.length; i++) {
+    const fDate = new Date(d.time[i]+'T12:00:00');
+    cards += `<div class="forecast-card">
+      <div class="card-day">${DAYS[fDate.getDay()]}</div>
+      <div class="card-icon">${getWeatherEmoji(d.weather_code[i], false)}</div>
+      <div class="card-cond">${WMO_CARD[d.weather_code[i]]||'N/A'}</div>
+      <div class="card-temps">
+        <div class="card-hi">HI<span>${cToF(d.temperature_2m_max[i])}°</span></div>
+        <div class="card-lo">LO<span>${cToF(d.temperature_2m_min[i])}°</span></div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('extendedForecast').innerHTML = cards;
+
+  // Slide 2: Local Forecast Text
+  const now = new Date();
+  const isEvening = now.getHours() >= 17;
+  const tCond = WMO_LONG[d.weather_code[1]]||'';
+  const tHi = cToF(d.temperature_2m_max[1]);
+  const tWind = kmhToMph(d.wind_speed_10m_max[1]);
+  const tDir = degToCompass(d.wind_direction_10m_dominant[1]);
+
+  let para = '';
+  para = `TODAY...${WMO_LONG[d.weather_code[0]]||''}. HIGH NEAR ${todayHi}F. WINDS ${todayDir} AT ${todayWind} TO ${todayWind+5} MPH.`;
+  para += `\n\nTONIGHT...${WMO_LONG[d.weather_code[0]]||''}. LOW AROUND ${todayLo}F.`;
+  para += `\n\nTOMORROW...${tCond}. HIGH AROUND ${tHi}F. WINDS ${tDir} AT ${tWind} TO ${tWind+5} MPH.`;
+  document.getElementById('forecastText').textContent = para;
+
+  // Slide 5: Almanac — Sunrise/Sunset
+  document.getElementById('almDayLabel').textContent = 'TODAY';
+  document.getElementById('almDay2Label').textContent = 'TOMORROW';
+  document.getElementById('almSunrise').textContent = sunrise;
+  document.getElementById('almSunset').textContent = sunset;
+  if (d.sunrise[1]) document.getElementById('almSunrise2').textContent = formatSunTime(d.sunrise[1]);
+  if (d.sunset[1]) document.getElementById('almSunset2').textContent = formatSunTime(d.sunset[1]);
+
+  // Moon phase dates
+  const moonPhases = getNextMoonPhases();
+  const moonRow = document.getElementById('moonPhasesRow');
+  moonRow.innerHTML = moonPhases.map(p => {
+    const dateStr = p.found ? `${MONTHS[p.found.getMonth()]} ${p.found.getDate()}` : '--';
+    return `<div class="moon-phase-card">
+      <div class="phase-label">${p.name}</div>
+      <div class="phase-emoji">${p.emoji}</div>
+      <div class="phase-date">${dateStr}</div>
+    </div>`;
+  }).join('');
+
+  buildTicker();
+  buildTickerCrawl();
+}
+
+// Static map using OpenStreetMap tile as background image
+// Converts lat/lon to pixel position on the map
+function latLonToPixel(latDeg, lonDeg, centerLat, centerLon, zoom, mapW, mapH) {
+  const toRad = d => d * Math.PI / 180;
+  const n = Math.pow(2, zoom);
+  // Center pixel
+  const cx = (centerLon + 180) / 360 * n * 256;
+  const cy = (1 - Math.log(Math.tan(toRad(centerLat)) + 1/Math.cos(toRad(centerLat))) / Math.PI) / 2 * n * 256;
+  // Target pixel
+  const px = (lonDeg + 180) / 360 * n * 256;
+  const py = (1 - Math.log(Math.tan(toRad(latDeg)) + 1/Math.cos(toRad(latDeg))) / Math.PI) / 2 * n * 256;
+  // Offset from center
+  return {
+    x: (px - cx) + mapW / 2,
+    y: (py - cy) + mapH / 2
+  };
+}
+
+function updateRegionalSlide() {
+  if (metroData.length === 0) return;
+
+  const mapBg = document.getElementById('mapBg');
+  const mapLabels = document.getElementById('mapLabels');
+  const wrap = mapBg.parentElement;
+  const mapW = wrap.offsetWidth || 1100;
+  const mapH = wrap.offsetHeight || 700;
+
+  // Zoom 8 ≈ ~120 mile radius view
+  const zoom = 8;
+
+  // Build a grid of tile images as background
+  const n = Math.pow(2, zoom);
+  const centerTileX = Math.floor((lon + 180) / 360 * n);
+  const centerTileY = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
+
+  // Calculate how many tiles we need
+  const tilesX = Math.ceil(mapW / 256) + 2;
+  const tilesY = Math.ceil(mapH / 256) + 2;
+  const startTX = centerTileX - Math.floor(tilesX / 2);
+  const startTY = centerTileY - Math.floor(tilesY / 2);
+
+  // Pixel offset of the center
+  const centerPxX = (lon + 180) / 360 * n * 256;
+  const centerPxY = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n * 256;
+  const originX = mapW / 2 - (centerPxX - startTX * 256);
+  const originY = mapH / 2 - (centerPxY - startTY * 256);
+
+  let tilesHtml = '';
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const tileX = startTX + tx;
+      const tileY = startTY + ty;
+      const left = originX + tx * 256;
+      const top = originY + ty * 256;
+      tilesHtml += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="position:absolute;left:${left}px;top:${top}px;width:256px;height:256px;" />`;
+    }
+  }
+  mapBg.innerHTML = tilesHtml;
+
+  // Place city labels
+  let labelsHtml = '';
+  for (const m of metroData) {
+    const city = MAJOR_CITIES.find(c => c.name === m.name);
+    if (!city) continue;
+    const pos = latLonToPixel(city.lat, city.lon, lat, lon, zoom, mapW, mapH);
+    if (pos.x < -50 || pos.x > mapW + 50 || pos.y < -30 || pos.y > mapH + 30) continue;
+    const emoji = getWeatherEmoji(m.code, !m.isDay);
+    labelsHtml += `<div class="map-city" style="left:${pos.x}px;top:${pos.y}px;">
+      <span class="city-name">${m.name}</span>
+      <span class="city-temp">${m.temp}° </span><span class="city-icon">${emoji}</span>
+    </div>`;
+  }
+
+  // User location
+  const userPos = latLonToPixel(lat, lon, lat, lon, zoom, mapW, mapH);
+  labelsHtml += `<div class="map-user" style="left:${userPos.x}px;top:${userPos.y}px;">📍 ${locationStr.toUpperCase().split(',')[0]}</div>`;
+
+  mapLabels.innerHTML = labelsHtml;
+}
+
+// ══════════════════════════════════════
+// Regional Radar (RainViewer API — free, no key)
+// ══════════════════════════════════════
+let radarFrames = []; // [{path, time}]
+let radarAnimIdx = 0;
+let radarAnimInterval = null;
+let radarBaseTilesHtml = '';
+let radarTileInfo = null;
+
+function buildMapTiles(containerId, zoom) {
+  const container = document.getElementById(containerId);
+  const wrap = container.parentElement;
+  const mapW = wrap.offsetWidth || 1100;
+  const mapH = wrap.offsetHeight || 700;
+  const n = Math.pow(2, zoom);
+  const centerTileX = Math.floor((lon + 180) / 360 * n);
+  const latRad = lat * Math.PI / 180;
+  const centerTileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+  const tilesX = Math.ceil(mapW / 256) + 2;
+  const tilesY = Math.ceil(mapH / 256) + 2;
+  const startTX = centerTileX - Math.floor(tilesX / 2);
+  const startTY = centerTileY - Math.floor(tilesY / 2);
+  const centerPxX = (lon + 180) / 360 * n * 256;
+  const centerPxY = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n * 256;
+  const originX = mapW / 2 - (centerPxX - startTX * 256);
+  const originY = mapH / 2 - (centerPxY - startTY * 256);
+
+  let html = '';
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const tileX = startTX + tx;
+      const tileY = startTY + ty;
+      const left = originX + tx * 256;
+      const top = originY + ty * 256;
+      html += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="left:${left}px;top:${top}px;" />`;
+    }
+  }
+  container.innerHTML = html;
+  return { startTX, startTY, tilesX, tilesY, originX, originY };
+}
+
+async function fetchRadar() {
+  try {
+    const r = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const data = await r.json();
+    const radar = data.radar;
+    if (!radar || !radar.past || radar.past.length === 0) return;
+    // Keep last 6 frames for animation
+    radarFrames = radar.past.slice(-6).map(f => ({ path: f.path, time: f.time }));
+    buildRadarBase();
+    startRadarAnimation();
+  } catch(e) { console.error('Radar fetch failed:', e); }
+}
+
+function buildRadarBase() {
+  const zoom = 7;
+  const container = document.getElementById('radarMapBg');
+  const wrap = container.parentElement;
+  const mapW = wrap.offsetWidth || 1100;
+  const mapH = wrap.offsetHeight || 700;
+  const n = Math.pow(2, zoom);
+  const latRad = lat * Math.PI / 180;
+  const centerTileX = Math.floor((lon + 180) / 360 * n);
+  const centerTileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+  const tilesX = Math.ceil(mapW / 256) + 2;
+  const tilesY = Math.ceil(mapH / 256) + 2;
+  const startTX = centerTileX - Math.floor(tilesX / 2);
+  const startTY = centerTileY - Math.floor(tilesY / 2);
+  const centerPxX = (lon + 180) / 360 * n * 256;
+  const centerPxY = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n * 256;
+  const originX = mapW / 2 - (centerPxX - startTX * 256);
+  const originY = mapH / 2 - (centerPxY - startTY * 256);
+
+  // Store tile info for overlay rendering
+  radarTileInfo = { zoom, startTX, startTY, tilesX, tilesY, originX, originY };
+
+  let baseHtml = '';
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const tileX = startTX + tx;
+      const tileY = startTY + ty;
+      const left = originX + tx * 256;
+      const top = originY + ty * 256;
+      baseHtml += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="left:${left}px;top:${top}px;" />`;
+    }
+  }
+  container.innerHTML = baseHtml;
+}
+
+function renderRadarFrame(frameIdx) {
+  if (!radarTileInfo || radarFrames.length === 0) return;
+  const frame = radarFrames[frameIdx];
+  const { zoom, startTX, startTY, tilesX, tilesY, originX, originY } = radarTileInfo;
+  const overlay = document.getElementById('radarOverlay');
+
+  let html = '';
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const tileX = startTX + tx;
+      const tileY = startTY + ty;
+      const left = originX + tx * 256;
+      const top = originY + ty * 256;
+      html += `<img src="https://tilecache.rainviewer.com${frame.path}/256/${zoom}/${tileX}/${tileY}/4/1_1.png" style="left:${left}px;top:${top}px;" onerror="this.style.display='none'" />`;
+    }
+  }
+  overlay.innerHTML = html;
+
+  const d = new Date(frame.time * 1000);
+  const timeEl = document.getElementById('radarTime');
+  timeEl.textContent = `RADAR: ${formatTime(d)}`;
+  // Flash the timestamp brighter on the latest frame
+  timeEl.style.color = (frameIdx === radarFrames.length - 1) ? 'var(--bright)' : 'rgba(232,232,232,0.5)';
+}
+
+function startRadarAnimation() {
+  if (radarAnimInterval) clearInterval(radarAnimInterval);
+  radarAnimIdx = 0;
+  renderRadarFrame(0);
+  radarAnimInterval = setInterval(() => {
+    radarAnimIdx = (radarAnimIdx + 1) % radarFrames.length;
+    renderRadarFrame(radarAnimIdx);
+  }, 800); // cycle every 800ms
+}
+
+// ══════════════════════════════════════
+// NWS Weather Alerts
+// ══════════════════════════════════════
+let activeAlerts = []; // { text, severity } — severity: 'watch' | 'warning' | 'advisory'
+
+async function fetchAlerts() {
+  try {
+    const r = await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}&status=actual`);
+    const data = await r.json();
+    activeAlerts = (data.features || []).map(f => {
+      const p = f.properties;
+      let severity = 'advisory';
+      const event = (p.event || '').toUpperCase();
+      if (event.includes('WATCH')) severity = 'watch';
+      else if (event.includes('WARNING')) severity = 'warning';
+      return {
+        text: `⚠ ${p.event.toUpperCase()}: ${(p.headline || '').toUpperCase().substring(0, 120)}`,
+        fullDesc: (p.description || '').toUpperCase().substring(0, 500),
+        severity
+      };
+    });
+  } catch(e) { console.error('Alerts fetch failed:', e); }
+
+  // Update alert slide
+  updateAlertSlide();
+
+  // Show/hide alert slide
+  if (activeAlerts.length > 0) {
+    TOTAL_SLIDES = 7;
+  } else {
+    TOTAL_SLIDES = 6;
+  }
+  initDots();
+
+  buildTicker();
+  buildTickerCrawl();
+}
+
+function updateAlertSlide() {
+  const container = document.getElementById('alertSlideContent');
+  if (activeAlerts.length === 0) {
+    container.innerHTML = '<div class="alert-no-alerts">NO ACTIVE ALERTS</div>';
+    return;
+  }
+  let html = '';
+  for (const alert of activeAlerts) {
+    html += `<div class="alert-event-title ${alert.severity}">${alert.text.substring(0, 80)}</div>`;
+  }
+  // Show full description of first alert
+  if (activeAlerts.length > 0) {
+    const firstFull = activeAlerts[0].fullDesc || '';
+    if (firstFull) {
+      html += `<div class="alert-description">${firstFull.substring(0, 500)}</div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+// ══════════════════════════════════════
+// Moon phase date finder
+// ══════════════════════════════════════
+function getNextMoonPhases() {
+  // Find next occurrence of each major phase by scanning day by day
+  const phases = [
+    { name: 'FIRST', emoji: '🌓', target: 0.25, found: null },
+    { name: 'FULL', emoji: '🌕', target: 0.5, found: null },
+    { name: 'LAST', emoji: '🌗', target: 0.75, found: null },
+    { name: 'NEW', emoji: '🌑', target: 0.0, found: null },
+  ];
+
+  const today = new Date();
+  for (let dayOffset = 0; dayOffset < 35; dayOffset++) {
+    const d = new Date(today); d.setDate(d.getDate() + dayOffset);
+    const jd = Math.floor(365.25*(d.getFullYear()+4716)) +
+      Math.floor(30.6001*((d.getMonth()+1) >= 3 ? (d.getMonth()+2) : (d.getMonth()+14))) +
+      d.getDate() +
+      ((d.getMonth()+1) < 3 ? -1 : 0) * Math.floor((d.getFullYear() + ((d.getMonth()+1) < 3 ? -1 : 0)) / 100) +
+      Math.floor(Math.floor((d.getFullYear() + ((d.getMonth()+1) < 3 ? -1 : 0)) / 100) / 4) - 1524.5;
+    let age = ((jd - 2451550.1) / 29.530588853) % 1;
+    if (age < 0) age += 1;
+
+    for (const p of phases) {
+      if (p.found) continue;
+      let diff = Math.abs(age - p.target);
+      if (diff > 0.5) diff = 1 - diff;
+      if (diff < 0.03) {
+        p.found = new Date(d);
+      }
+    }
+    if (phases.every(p => p.found)) break;
+  }
+  return phases;
+}
+
+// Ticker
+function buildTicker() {
+  if (!weatherData) return;
+  const c = weatherData.current, d = weatherData.daily, h = weatherData.hourly;
+  const nowHour = new Date().getHours();
+  const moon = getMoonPhase(new Date());
+
+  // Build normal ticker items (type: 'normal')
+  tickerItems = [];
+
+  // Alerts go first — they always show with color
+  for (const alert of activeAlerts) {
+    tickerItems.push({ text: alert.text, type: alert.severity });
+  }
+
+  // Normal weather data
+  tickerItems.push(
+    { text: `HUMIDITY: ${c.relative_humidity_2m}%     DEW POINT: ${h?.dew_point_2m?.[nowHour] != null ? cToF(h.dew_point_2m[nowHour])+'°F' : '--'}`, type: 'normal' },
+    { text: `WIND: ${degToCompass(c.wind_direction_10m)} AT ${kmhToMph(c.wind_speed_10m)} MPH`, type: 'normal' },
+    { text: `VISIBILITY: ${h?.visibility?.[nowHour] != null ? kmToMi(h.visibility[nowHour]/1000)+' MI' : '--'}`, type: 'normal' },
+    { text: `UV INDEX: ${Math.round(c.uv_index)}`, type: 'normal', uvLevel: Math.round(c.uv_index) },
+    { text: `SUNRISE: ${formatSunTime(d.sunrise[0])}     SUNSET: ${formatSunTime(d.sunset[0])}`, type: 'normal' },
+    { text: `${moon.emoji} MOON: ${moon.phase} — ${moon.illumination}% ILLUMINATED`, type: 'normal' },
+    { text: `TODAY'S HIGH: ${cToF(d.temperature_2m_max[0])}°F     LOW: ${cToF(d.temperature_2m_min[0])}°F`, type: 'normal' },
+    { text: `FEELS LIKE: ${cToF(c.apparent_temperature)}°F`, type: 'normal' },
+  );
+}
+
+function buildTickerCrawl() {
+  if (tickerItems.length === 0) return;
+  const track = document.getElementById('tickerTrack');
+  const bar = document.querySelector('.bottom-bar');
+
+  // Check if any alerts — color the bar
+  const hasWatch = tickerItems.some(i => i.type === 'watch');
+  const hasWarning = tickerItems.some(i => i.type === 'warning');
+  bar.classList.toggle('alert-watch', hasWatch);
+  bar.classList.toggle('alert-warning', !hasWatch && hasWarning);
+
+  // Build a long string of all items, duplicated for seamless loop
+  let html = '';
+  for (let copy = 0; copy < 2; copy++) {
+    for (const item of tickerItems) {
+      const cls = item.type === 'warning' ? ' alert-warning' : item.type === 'watch' ? ' alert-watch' : '';
+      let style = '';
+      if (item.uvLevel >= 8) style = ' style="color:#ff4444"';
+      else if (item.uvLevel >= 6) style = ' style="color:#ffdd44"';
+      html += `<span class="ticker-text${cls}"${style}>${item.text}</span>`;
+      html += `<span class="ticker-sep">◆</span>`;
+    }
+  }
+  track.innerHTML = html;
+
+  // Set scroll speed based on content length (~40px per second)
+  const duration = Math.max(20, tickerItems.length * 6);
+  track.style.setProperty('--ticker-duration', `${duration}s`);
+}
+setInterval(nextSlide, SLIDE_INTERVAL);
+
+// Init
+async function init() {
+  initDots();
+  const loc = await getLocation();
+  lat = loc.lat; lon = loc.lon;
+  await Promise.all([fetchWeather(), reverseGeocode(lat, lon)]);
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('app').style.opacity = '1';
+  showSlide(0);
+  fetchMetroConditions();
+  fetchAlerts();
+  fetchRadar();
+  setInterval(fetchWeather, DATA_REFRESH);
+  setInterval(fetchMetroConditions, DATA_REFRESH);
+  setInterval(fetchAlerts, DATA_REFRESH);
+  setInterval(fetchRadar, DATA_REFRESH);
+  // Full page reload every hour to prevent memory leaks on long-running kiosk
+  setTimeout(() => location.reload(), PAGE_RELOAD);
+}
+
+init();
+</script>
+</body>
+</html>
