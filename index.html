@@ -147,11 +147,11 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
   }
   .header-temp .ht-val {
-    font-size: clamp(22px, 3vw, 42px); font-weight: bold; color: var(--bright);
+    font-size: clamp(26px, 3.5vw, 48px); font-weight: bold; color: var(--bright);
     letter-spacing: 1px;
   }
   .header-temp .ht-feels {
-    font-size: clamp(10px, 1.2vw, 16px); color: rgba(232,232,232,0.55);
+    font-size: clamp(12px, 1.5vw, 20px); color: rgba(232,232,232,0.55);
     letter-spacing: 0.5px;
   }
   .header-right { text-align: right; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
@@ -187,12 +187,13 @@
   .slide.active {
     opacity: 1;
     transform: translateX(0);
-    animation: slideIn 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+    animation: slideIn 1.8s cubic-bezier(0.25, 0.1, 0.25, 1);
     pointer-events: auto;
   }
   .slide.exiting {
-    opacity: 1;
-    animation: slideOut 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+    opacity: 0;
+    transform: translateX(0);
+    animation: slideOut 0.4s ease-out forwards;
   }
   @keyframes slideIn {
     0% { transform: translateX(60%); opacity: 0; }
@@ -200,47 +201,47 @@
     100% { transform: translateX(0); opacity: 1; }
   }
   @keyframes slideOut {
-    0% { transform: translateX(0); opacity: 1; }
-    70% { opacity: 0.5; }
-    100% { transform: translateX(-60%); opacity: 0; }
+    0% { opacity: 1; }
+    100% { opacity: 0; }
   }
 
   /* ── Current Conditions ── */
   .current-layout {
     display: flex; gap: 4vw; align-items: center; flex: 1;
+    overflow: hidden;
   }
   .current-left { flex: 0 0 auto; }
-  .current-right { flex: 1; }
+  .current-right { flex: 1; overflow: hidden; }
   .temp-hero {
-    font-size: clamp(90px, 18vw, 240px); color: var(--bright); font-weight: bold;
+    font-size: clamp(90px, min(18vw, 28vh), 240px); color: var(--bright); font-weight: bold;
     text-shadow: 3px 4px 8px rgba(0,0,0,0.5); letter-spacing: 2px;
     line-height: 1;
   }
   .condition-desc {
-    font-size: clamp(30px, 4vw, 60px); color: var(--yellow);
+    font-size: clamp(24px, min(4vw, 5vh), 56px); color: var(--yellow);
     margin-top: 1vh; letter-spacing: 1px;
   }
   .weather-icon-large {
-    font-size: clamp(70px, 11vw, 150px);
+    font-size: clamp(60px, min(11vw, 14vh), 150px);
     margin-bottom: 1vh;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
   }
   .conditions-grid {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 1vh 3vw;
-    font-size: clamp(26px, 3.3vw, 50px); line-height: 2;
+    gap: 0.4vh 3vw;
+    font-size: clamp(18px, min(3.3vw, 4.5vh), 42px); line-height: 1.6;
   }
   .condition-label { color: rgba(232,232,232,0.65); }
   .condition-value { color: var(--bright); }
   .hilo-sub {
-    font-size: clamp(28px, 4vw, 56px);
+    font-size: clamp(22px, min(4vw, 5vh), 50px);
     font-weight: bold; margin-top: 0.3vh;
     letter-spacing: 1px;
   }
   .hilo-sub .hi-val { color: #ffcc88; }
   .hilo-sub .lo-val { color: #99ccff; }
   .feels-like-sub {
-    font-size: clamp(18px, 2.2vw, 32px);
+    font-size: clamp(14px, min(2.2vw, 3vh), 28px);
     color: rgba(232,232,232,0.6);
     margin-top: 0.5vh;
     letter-spacing: 1px;
@@ -288,20 +289,20 @@
     width: 100%; text-align: center;
     background: rgba(0,0,0,0.2);
     padding: 1.5vh 0;
-    font-size: clamp(26px, 3.5vw, 50px);
+    font-size: clamp(20px, 2.6vw, 40px);
     font-weight: bold; color: var(--bright);
     letter-spacing: 2px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     font-family: var(--sans);
   }
   .card-icon {
-    font-size: clamp(70px, 13vw, 180px);
+    font-size: clamp(50px, 9vw, 130px);
     padding: 2vh 0;
     display: flex; align-items: center; justify-content: center;
     filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
   }
   .card-cond {
-    font-size: clamp(18px, 2.4vw, 34px);
+    font-size: clamp(14px, 1.7vw, 26px);
     color: var(--white); text-align: center;
     padding: 0.5vh 0.5vw 1.5vh;
     line-height: 1.3;
@@ -314,12 +315,12 @@
   }
   .card-hi, .card-lo {
     text-align: center;
-    font-size: clamp(18px, 2.2vw, 30px);
+    font-size: clamp(14px, 1.6vw, 24px);
     color: rgba(232,232,232,0.6);
   }
   .card-hi span, .card-lo span {
     display: block;
-    font-size: clamp(40px, 5.5vw, 78px);
+    font-size: clamp(28px, 3.8vw, 60px);
     font-weight: bold;
   }
   .card-hi span { color: #ffcc88; }
@@ -327,7 +328,7 @@
 
   /* ── Forecast Text ── */
   .forecast-paragraph {
-    font-size: clamp(32px, 4vw, 58px); line-height: 1.5;
+    font-size: clamp(22px, 2.7vw, 42px); line-height: 1.55;
     color: var(--white); letter-spacing: 0.5px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
     white-space: pre-wrap;
@@ -339,9 +340,8 @@
   }
   .regional-map-bg {
     position: absolute; inset: 0;
-    background-size: cover; background-position: center;
-    filter: saturate(0.3) brightness(0.55) contrast(1.1) sepia(0.4) hue-rotate(200deg);
   }
+  .regional-map-bg img { width: 100%; height: 100%; object-fit: cover; }
   .regional-map-labels {
     position: absolute; inset: 0;
   }
@@ -420,10 +420,10 @@
     transition: background 0.5s ease;
   }
   .bottom-bar.alert-warning {
-    background: #8a7a00;
+    background: #8a1a1a;
   }
   .bottom-bar.alert-watch {
-    background: #8a1a1a;
+    background: #8a7a00;
   }
   .ticker-track {
     display: flex; white-space: nowrap;
@@ -444,7 +444,7 @@
     font-weight: bold;
   }
   .ticker-text.alert-watch {
-    color: #ff4444;
+    color: #ffffff;
     font-weight: bold;
   }
   .ticker-sep {
@@ -453,9 +453,8 @@
     font-size: clamp(26px, 3.2vw, 48px);
   }
   .location-name {
-    position: absolute; right: 2.5vw;
-    font-size: clamp(10px, 1vw, 14px);
-    color: rgba(232,232,232,0.4); letter-spacing: 1px;
+    font-size: clamp(10px, 1.1vw, 15px);
+    color: rgba(232,232,232,0.45); letter-spacing: 1.5px; margin-top: 0.2vh;
   }
 
   /* ── Loading ── */
@@ -510,13 +509,18 @@
   }
   .radar-map-bg {
     position: absolute; inset: 0;
-    filter: saturate(0.3) brightness(0.5) contrast(1.1) sepia(0.4) hue-rotate(200deg);
   }
-  .radar-map-bg img { position: absolute; width: 256px; height: 256px; }
+  .radar-map-bg img { width: 100%; height: 100%; object-fit: cover; }
   .radar-overlay {
     position: absolute; inset: 0;
   }
   .radar-overlay img { position: absolute; width: 256px; height: 256px; opacity: 0.7; }
+  .radar-pin {
+    position: absolute; z-index: 5; pointer-events: none;
+    font-size: clamp(18px, 2.2vw, 30px); color: var(--yellow);
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+    white-space: nowrap;
+  }
   .radar-timestamp {
     position: absolute; bottom: 1.5vh; left: 2vw;
     font-size: clamp(14px, 1.6vw, 22px);
@@ -524,7 +528,7 @@
     text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
   }
   .radar-legend {
-    position: absolute; bottom: 1.5vh; right: 2vw;
+    position: absolute; bottom: 1.5vh; right: 6vw;
     display: flex; gap: 0.8vw; align-items: center;
     font-size: clamp(10px, 1vw, 14px);
     color: rgba(232,232,232,0.6);
@@ -551,8 +555,8 @@
     font-weight: bold; margin-bottom: 2vh;
     letter-spacing: 1px;
   }
-  .alert-event-title.warning { color: #ffee00; }
-  .alert-event-title.watch { color: #ff4444; }
+  .alert-event-title.warning { color: #ff4444; }
+  .alert-event-title.watch { color: #ffee00; }
   .alert-event-title.advisory { color: #ff9944; }
   .alert-description {
     font-size: clamp(18px, 2.2vw, 32px);
@@ -563,9 +567,9 @@
 
   /* ── Music button ── */
   .music-btn {
-    position: fixed; bottom: 1.5vh; right: 1.5vw;
+    position: fixed; bottom: calc(max(9vh, 60px) + 1.5vh); right: 3vw;
     z-index: 900; cursor: pointer;
-    background: #2a8a2a; border: 2px solid #4abf4a;
+    background: rgba(30,20,60,0.75); border: 1px solid rgba(120,110,180,0.5);
     border-radius: 4px; padding: 0.5vw 0.8vw;
     color: var(--bright); font-family: var(--mono);
     font-size: clamp(14px, 1.4vw, 20px);
@@ -574,12 +578,12 @@
     transition: background 0.3s;
     display: flex; align-items: center; gap: 0.4vw;
   }
-  .music-btn:hover { background: #35a535; }
-  .music-btn.muted { background: #8a2a2a; border-color: #bf4a4a; }
-  .music-btn.muted:hover { background: #a53535; }
+  .music-btn:hover { background: rgba(50,40,90,0.85); }
+  .music-btn.muted { opacity: 0.6; }
+  .music-btn.muted:hover { opacity: 1; }
 
   .slide-dots {
-    position: absolute; bottom: 0.8vh; right: 0.8vw;
+    position: absolute; bottom: 0.8vh; left: 50%; transform: translateX(-50%);
     display: flex; gap: 0.4vw; z-index: 5;
   }
   .dot {
@@ -588,6 +592,169 @@
     transition: background 0.4s ease;
   }
   .dot.active { background: var(--yellow); }
+
+  /* ══════════════════════════════════════
+     MOBILE / PORTRAIT
+     ══════════════════════════════════════ */
+  @media (max-width: 768px), (orientation: portrait) and (max-width: 900px) {
+    html, body { overflow-y: auto; overflow-x: hidden; }
+
+    .app { height: auto; min-height: 100vh; }
+
+    /* Header: stack into two rows */
+    .header {
+      height: auto; min-height: 0;
+      flex-wrap: wrap; padding: 2vw 3vw;
+      gap: 1.5vw;
+    }
+    .header-left {
+      flex: 1 1 60%; gap: 2vw;
+      order: 1; min-width: 0;
+    }
+    .header-right {
+      flex: 0 0 auto; order: 2;
+      text-align: right;
+    }
+    .header-temp {
+      flex: 1 1 100%; order: 3;
+      text-align: center;
+      padding-top: 1vw;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-top: 1vw;
+    }
+    .header-temp .ht-val { font-size: 28px; }
+    .header-temp .ht-feels { font-size: 13px; }
+    .header-title {
+      font-size: 16px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .header-time { font-size: 18px; }
+    .header-date { font-size: 12px; letter-spacing: 1px; }
+    .logo { padding: 5px 8px; border-radius: 6px; border-width: 2px; }
+    .logo-text { font-size: 11px; }
+    .header-bg::before { inset: -40px -80px; }
+
+    /* Content: give slides real height and allow scroll within */
+    .content-area {
+      padding: 2vw 3vw;
+      min-height: 72vh;
+    }
+    .content-panel { min-height: 72vh; }
+
+    .slide {
+      padding: 4vw 4vw 6vw;
+      justify-content: safe center;
+      overflow-y: auto;
+    }
+
+    /* Current conditions: stack vertically */
+    .current-layout {
+      flex-direction: column; gap: 2vh;
+      align-items: center; text-align: center;
+    }
+    .current-left, .current-right { flex: 0 0 auto; width: 100%; }
+    .weather-icon-large { font-size: 80px; margin-bottom: 0.5vh; }
+    .temp-hero { font-size: 88px; letter-spacing: 1px; }
+    .hilo-sub { font-size: 24px; }
+    .condition-desc { font-size: 22px; margin-top: 0.5vh; }
+    .feels-like-sub { font-size: 14px; }
+    .conditions-grid {
+      font-size: 17px; gap: 0.3vh 6vw;
+      justify-content: center;
+      max-width: 360px; margin: 1vh auto 0;
+      line-height: 1.5;
+    }
+
+    /* Today's Forecast */
+    .today-layout { flex-direction: column; gap: 2vh; text-align: center; }
+    .today-left, .today-right { width: 100%; }
+    .today-icon { font-size: 90px; }
+    .today-cond { font-size: 26px; }
+    .today-temp-big { font-size: 72px; }
+    .today-grid {
+      font-size: 20px; gap: 0.5vh 6vw;
+      justify-content: center;
+      max-width: 360px; margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* Extended Forecast: 2-col grid so cards remain legible */
+    .forecast-cards {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 2vw;
+    }
+    /* odd card count: let the last card span the full row */
+    .forecast-card:last-child:nth-child(odd) { grid-column: span 2; }
+    .card-day { font-size: 16px; padding: 1vh 0; letter-spacing: 1px; }
+    .card-icon { font-size: 54px; padding: 1vh 0; }
+    .card-cond { font-size: 12px; padding: 0.3vh 0.5vw 1vh; }
+    .card-temps { padding: 1vh 0.5vw; }
+    .card-hi, .card-lo { font-size: 11px; }
+    .card-hi span, .card-lo span { font-size: 28px; }
+
+    /* Forecast paragraph */
+    .forecast-paragraph { font-size: 16px; line-height: 1.5; }
+
+    /* Regional map labels */
+    .map-city .city-name { font-size: 11px; }
+    .map-city .city-temp { font-size: 18px; }
+    .map-city .city-icon { font-size: 16px; }
+    .map-user { font-size: 12px; }
+
+    /* Almanac: stack */
+    .almanac-layout { flex-direction: column; gap: 2vh; }
+    .almanac-grid { font-size: 18px; gap: 0.4vh 6vw; }
+    .almanac-label { font-size: 14px; }
+    .moon-phases-row { flex-wrap: wrap; gap: 2vw 3vw; }
+    .moon-phase-card { flex: 1 1 40%; }
+    .moon-phase-card .phase-label { font-size: 14px; }
+    .moon-phase-card .phase-emoji { font-size: 70px; margin: 0.5vh 0; }
+    .moon-phase-card .phase-date { font-size: 14px; }
+
+    /* Hourly */
+    .hourly-container { flex-wrap: wrap; gap: 1vh 1vw; }
+    .hourly-item { flex: 0 0 calc(25% - 0.75vw); }
+    .hourly-time { font-size: 12px; }
+    .hourly-icon { font-size: 32px; }
+    .hourly-temp { font-size: 20px; }
+    .hourly-divider { display: none; }
+
+    /* Alert */
+    .alert-event-title { font-size: 18px; }
+    .alert-description { font-size: 14px; line-height: 1.5; }
+    .alert-no-alerts { font-size: 16px; }
+
+    /* Radar legend smaller */
+    .radar-legend { gap: 2vw; font-size: 9px; }
+    .radar-legend-swatch { width: 8px; height: 8px; }
+    .radar-timestamp { font-size: 11px; }
+    .radar-pin { font-size: 12px; }
+
+    /* Bottom ticker */
+    .bottom-bar { height: auto; min-height: 44px; padding: 1.5vw 3vw; }
+    .ticker-text, .ticker-sep { font-size: 16px; letter-spacing: 1px; }
+    .location-name { display: none; }
+
+    /* Music button: clear of the ticker bar */
+    .music-btn {
+      bottom: 56px; right: 10px;
+      padding: 6px 10px; font-size: 14px;
+    }
+
+    /* Slide dots a bit bigger for touch visibility */
+    .dot { width: 6px; height: 6px; }
+    .slide-dots { bottom: 6px; gap: 5px; }
+  }
+
+  /* Very narrow phones */
+  @media (max-width: 380px) {
+    .temp-hero { font-size: 72px; }
+    .weather-icon-large { font-size: 64px; }
+    .forecast-cards { grid-template-columns: repeat(2, 1fr); }
+    .card-hi span, .card-lo span { font-size: 24px; }
+    .today-temp-big { font-size: 60px; }
+    .header-title { font-size: 17px; }
+  }
 </style>
 </head>
 <body>
@@ -613,6 +780,7 @@
     <div class="header-right">
       <div class="header-time" id="clock"></div>
       <div class="header-date" id="dateDisplay"></div>
+      <div class="location-name" id="locationName"></div>
     </div>
   </div>
 
@@ -674,7 +842,6 @@
       <div class="slide" id="slide4" style="padding:0;">
         <div class="radar-map-wrap">
           <div class="radar-map-bg" id="radarMapBg"></div>
-          <div class="radar-overlay" id="radarOverlay"></div>
           <div class="radar-timestamp" id="radarTime"></div>
           <div class="radar-legend">
             <div class="radar-legend-item"><div class="radar-legend-swatch" style="background:#00ff00"></div>LIGHT</div>
@@ -722,7 +889,6 @@
       <div class="ticker-track" id="tickerTrack">
         <span class="ticker-text">LOADING WEATHER DATA...</span>
       </div>
-      <div class="location-name" id="locationName"></div>
     </div>
   </div>
 </div>
@@ -852,8 +1018,9 @@ let tickerItems = [];
 const degToCompass = d => WIND_DIRS[Math.round(d/22.5)%16];
 const cToF = c => Math.round(c*9/5+32);
 const kmhToMph = k => Math.round(k*0.621371);
-const kmToMi = k => (k*0.621371).toFixed(1);
 const hpaToInhg = h => (h*0.02953).toFixed(2);
+// Open-Meteo caps visibility at its sensor max (~24 km) — report "10+" like NWS
+const fmtVis = meters => { const mi = meters/1609.34; return mi >= 10 ? '10+ MI' : `${mi.toFixed(1)} MI`; };
 
 function formatTime(d) {
   let h=d.getHours(); const m=String(d.getMinutes()).padStart(2,'0');
@@ -868,14 +1035,15 @@ function formatSunTime(iso) {
 }
 
 // Moon phase calculation
+// Age as a fraction of the synodic cycle: 0 = new, 0.25 = first qtr, 0.5 = full
+const SYNODIC_DAYS = 29.530588853;
+const NEW_MOON_EPOCH_MS = Date.UTC(2000, 0, 6, 18, 14); // known new moon
+function moonAgeFraction(date) {
+  const days = (date.getTime() - NEW_MOON_EPOCH_MS) / 86400000;
+  return ((days / SYNODIC_DAYS) % 1 + 1) % 1;
+}
 function getMoonPhase(date) {
-  const y = date.getFullYear(), mo = date.getMonth()+1, day = date.getDate();
-  const jd = Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(mo >= 3 ? mo+1 : mo+13)) + day +
-    (mo < 3 ? -1 : 0) * Math.floor((y + (mo < 3 ? -1 : 0)) / 100) +
-    Math.floor(Math.floor((y + (mo < 3 ? -1 : 0)) / 100) / 4) - 1524.5;
-  // Simplified: use known new moon epoch
-  const ip = ((jd - 2451550.1) / 29.530588853) % 1;
-  const age = ip < 0 ? ip + 1 : ip;
+  const age = moonAgeFraction(date);
   const illum = Math.round((1 - Math.cos(age * 2 * Math.PI)) / 2 * 100);
 
   let phase, emoji;
@@ -924,20 +1092,30 @@ async function getLocation() {
 }
 
 async function reverseGeocode(lt, ln) {
+  // BigDataCloud is free, keyless, and built for client-side use;
+  // Nominatim (strict usage policy) is the fallback
   try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lt}&lon=${ln}&format=json&zoom=14`);
+    const r = await fetch(`https://api-bdc.io/data/reverse-geocode-client?latitude=${lt}&longitude=${ln}&localityLanguage=en`);
     const d = await r.json();
-    const a = d.address;
-    let city = a.city || a.town || a.village || a.hamlet || '';
-    if (!city && a.county) city = a.county.replace(/ County$/i, '').replace(/ Parish$/i, '');
-    const state = a.state||'';
-    locationStr = city&&state ? `${city}, ${state}` : city||state||`${lt.toFixed(2)}, ${ln.toFixed(2)}`;
-    document.getElementById('locationName').textContent = locationStr.toUpperCase();
-    document.title = `Weather — ${locationStr}`;
+    const city = d.city || d.locality || '';
+    const state = d.principalSubdivision || '';
+    if (!city && !state) throw new Error('empty');
+    locationStr = city && state ? `${city}, ${state}` : city || state;
   } catch {
-    locationStr = `${lt.toFixed(2)}, ${ln.toFixed(2)}`;
-    document.getElementById('locationName').textContent = locationStr;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lt}&lon=${ln}&format=json&zoom=14`);
+      const d = await r.json();
+      const a = d.address;
+      let city = a.city || a.town || a.village || a.hamlet || '';
+      if (!city && a.county) city = a.county.replace(/ County$/i, '').replace(/ Parish$/i, '');
+      const state = a.state || '';
+      locationStr = city && state ? `${city}, ${state}` : city || state || `${lt.toFixed(2)}, ${ln.toFixed(2)}`;
+    } catch {
+      locationStr = `${lt.toFixed(2)}, ${ln.toFixed(2)}`;
+    }
   }
+  document.getElementById('locationName').textContent = locationStr.toUpperCase();
+  document.title = `Weather — ${locationStr}`;
 }
 
 
@@ -945,7 +1123,7 @@ async function reverseGeocode(lt, ln) {
 async function fetchWeather() {
   const params = [
     `latitude=${lat}`, `longitude=${lon}`,
-    'current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure,uv_index,is_day',
+    'current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl,uv_index,is_day',
     'hourly=visibility,dew_point_2m,temperature_2m,weather_code,is_day',
     'daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max,wind_direction_10m_dominant',
     'temperature_unit=celsius','wind_speed_unit=kmh','timezone=auto','forecast_days=7'
@@ -974,7 +1152,7 @@ function findNearestCities(userLat, userLon, count) {
 }
 
 async function fetchMetroConditions() {
-  const nearest = findNearestCities(lat, lon, 6);
+  const nearest = findNearestCities(lat, lon, 8);
   if (nearest.length === 0) return;
 
   const lats = nearest.map(c => c.lat).join(',');
@@ -997,6 +1175,62 @@ async function fetchMetroConditions() {
   } catch(e) { console.error('Metro fetch failed:', e); }
 
   updateRegionalSlide();
+}
+
+// ══════════════════════════════════════
+// Local Forecast text — real NWS period text (free, US only),
+// falls back to text generated from Open-Meteo daily data
+// ══════════════════════════════════════
+let nwsForecastText = null;
+
+function trimSentences(text, maxLen) {
+  const parts = text.split('. ');
+  let out = '';
+  for (const p of parts) {
+    if (out && (out.length + p.length) > maxLen) break;
+    out += p.endsWith('.') ? p + ' ' : p + '. ';
+  }
+  return out.trim() || text.slice(0, maxLen);
+}
+
+async function fetchNWSForecast() {
+  try {
+    const pr = await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`);
+    if (!pr.ok) throw new Error(pr.status);
+    const pd = await pr.json();
+    const fr = await fetch(pd.properties.forecast);
+    if (!fr.ok) throw new Error(fr.status);
+    const fd = await fr.json();
+    const periods = (fd.properties.periods || []).slice(0, 3);
+    if (!periods.length) throw new Error('no periods');
+    nwsForecastText = periods
+      .map(p => `${p.name.toUpperCase()}...${trimSentences(p.detailedForecast, 170).toUpperCase()}`)
+      .join('\n\n');
+  } catch(e) {
+    nwsForecastText = null; // non-US location or API down — generated text below
+  }
+  updateForecastTextSlide();
+}
+
+function updateForecastTextSlide() {
+  const el = document.getElementById('forecastText');
+  if (nwsForecastText) { el.textContent = nwsForecastText; return; }
+  if (!weatherData) return;
+  const d = weatherData.daily, h = weatherData.hourly;
+
+  const todayHi = cToF(d.temperature_2m_max[0]), todayLo = cToF(d.temperature_2m_min[0]);
+  const todayWind = kmhToMph(d.wind_speed_10m_max[0]);
+  const todayDir = degToCompass(d.wind_direction_10m_dominant[0]);
+  const tHi = cToF(d.temperature_2m_max[1]);
+  const tWind = kmhToMph(d.wind_speed_10m_max[1]);
+  const tDir = degToCompass(d.wind_direction_10m_dominant[1]);
+  // Tonight: worst weather code between 6pm today and 6am tomorrow
+  const tonightCode = Math.max(...(h?.weather_code?.slice(18, 31) || [d.weather_code[0]]));
+
+  let para = `TODAY...${WMO_LONG[d.weather_code[0]]||''}. HIGH NEAR ${todayHi}F. WINDS ${todayDir} AT ${todayWind} TO ${todayWind+5} MPH.`;
+  para += `\n\nTONIGHT...${WMO_LONG[tonightCode]||''}. LOW AROUND ${todayLo}F.`;
+  para += `\n\nTOMORROW...${WMO_LONG[d.weather_code[1]]||''}. HIGH AROUND ${tHi}F. WINDS ${tDir} AT ${tWind} TO ${tWind+5} MPH.`;
+  el.textContent = para;
 }
 
 // ── Slide system ──
@@ -1026,7 +1260,7 @@ function showSlide(index) {
       // Animate the old slide out
       s.classList.remove('active');
       s.classList.add('exiting');
-      setTimeout(() => s.classList.remove('exiting'), 1000);
+      setTimeout(() => s.classList.remove('exiting'), 400);
     } else {
       s.classList.remove('active', 'exiting');
     }
@@ -1190,11 +1424,11 @@ function updateAllSlides() {
   const uvEl = document.getElementById('currentUV');
   uvEl.textContent = `${uvVal}`;
   uvEl.style.color = uvVal >= 8 ? '#ff4444' : uvVal >= 6 ? '#ffdd44' : '';
-  document.getElementById('currentPressure').textContent = `${hpaToInhg(c.surface_pressure)} IN`;
+  document.getElementById('currentPressure').textContent = `${hpaToInhg(c.pressure_msl ?? c.surface_pressure)} IN`;
   document.getElementById('currentSunrise').textContent = formatSunTime(d.sunrise[0]);
   document.getElementById('currentSunset').textContent = formatSunTime(d.sunset[0]);
   if (h?.visibility?.[nowHour] != null)
-    document.getElementById('currentVisibility').textContent = `${kmToMi(h.visibility[nowHour]/1000)} MI`;
+    document.getElementById('currentVisibility').textContent = fmtVis(h.visibility[nowHour]);
   if (h?.dew_point_2m?.[nowHour] != null)
     document.getElementById('currentDewpoint').textContent = `${cToF(h.dew_point_2m[nowHour])}°F`;
 
@@ -1205,7 +1439,7 @@ function updateAllSlides() {
 
   // Slide 1: Extended Forecast CARDS
   let cards = '';
-  for (let i = 1; i <= 3 && i < d.time.length; i++) {
+  for (let i = 1; i <= 5 && i < d.time.length; i++) {
     const fDate = new Date(d.time[i]+'T12:00:00');
     cards += `<div class="forecast-card">
       <div class="card-day">${DAYS[fDate.getDay()]}</div>
@@ -1220,18 +1454,7 @@ function updateAllSlides() {
   document.getElementById('extendedForecast').innerHTML = cards;
 
   // Slide 2: Local Forecast Text
-  const now = new Date();
-  const isEvening = now.getHours() >= 17;
-  const tCond = WMO_LONG[d.weather_code[1]]||'';
-  const tHi = cToF(d.temperature_2m_max[1]);
-  const tWind = kmhToMph(d.wind_speed_10m_max[1]);
-  const tDir = degToCompass(d.wind_direction_10m_dominant[1]);
-
-  let para = '';
-  para = `TODAY...${WMO_LONG[d.weather_code[0]]||''}. HIGH NEAR ${todayHi}F. WINDS ${todayDir} AT ${todayWind} TO ${todayWind+5} MPH.`;
-  para += `\n\nTONIGHT...${WMO_LONG[d.weather_code[0]]||''}. LOW AROUND ${todayLo}F.`;
-  para += `\n\nTOMORROW...${tCond}. HIGH AROUND ${tHi}F. WINDS ${tDir} AT ${tWind} TO ${tWind+5} MPH.`;
-  document.getElementById('forecastText').textContent = para;
+  updateForecastTextSlide();
 
   // Slide 5: Almanac — Sunrise/Sunset
   document.getElementById('almDayLabel').textContent = 'TODAY';
@@ -1257,126 +1480,145 @@ function updateAllSlides() {
   buildTickerCrawl();
 }
 
-// Static map using OpenStreetMap tile as background image
-// Converts lat/lon to pixel position on the map
-function latLonToPixel(latDeg, lonDeg, centerLat, centerLon, zoom, mapW, mapH) {
-  const toRad = d => d * Math.PI / 180;
-  const n = Math.pow(2, zoom);
-  // Center pixel
-  const cx = (centerLon + 180) / 360 * n * 256;
-  const cy = (1 - Math.log(Math.tan(toRad(centerLat)) + 1/Math.cos(toRad(centerLat))) / Math.PI) / 2 * n * 256;
-  // Target pixel
-  const px = (lonDeg + 180) / 360 * n * 256;
-  const py = (1 - Math.log(Math.tan(toRad(latDeg)) + 1/Math.cos(toRad(latDeg))) / Math.PI) / 2 * n * 256;
-  // Offset from center
-  return {
-    x: (px - cx) + mapW / 2,
-    y: (py - cy) + mapH / 2
-  };
+// ══════════════════════════════════════
+// Map rendering — CARTO dark tiles (free, no API key)
+// ══════════════════════════════════════
+const MAP_ZOOM = 8;
+const RADAR_ZOOM = 7;
+
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
 }
 
-function updateRegionalSlide() {
+// Convert lat/lon to pixel position on a Mapbox static image
+function latLonToPixel(latDeg, lonDeg, centerLat, centerLon, zoom, mapW, mapH) {
+  const toRad = d => d * Math.PI / 180;
+  const scale = Math.pow(2, zoom) * 256;
+  const cx = (centerLon + 180) / 360 * scale;
+  const cy = (1 - Math.log(Math.tan(toRad(centerLat)) + 1/Math.cos(toRad(centerLat))) / Math.PI) / 2 * scale;
+  const px = (lonDeg + 180) / 360 * scale;
+  const py = (1 - Math.log(Math.tan(toRad(latDeg)) + 1/Math.cos(toRad(latDeg))) / Math.PI) / 2 * scale;
+  return { x: (px - cx) + mapW / 2, y: (py - cy) + mapH / 2 };
+}
+
+// Draw a CARTO dark_nolabels basemap centered on the user, graded toward
+// the app's deep-purple theme. Returns canvas + tile layout for overlays.
+async function buildBaseCanvas(zoom, W, H) {
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const n = Math.pow(2, zoom);
+  const latRad = lat * Math.PI / 180;
+  const centerPxX = (lon + 180) / 360 * n * 256;
+  const centerPxY = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n * 256;
+  const tilesX = Math.ceil(W / 256) + 2;
+  const tilesY = Math.ceil(H / 256) + 2;
+  const startTX = Math.floor(centerPxX / 256) - Math.floor(tilesX / 2);
+  const startTY = Math.floor(centerPxY / 256) - Math.floor(tilesY / 2);
+  const originX = W / 2 - (centerPxX - startTX * 256);
+  const originY = H / 2 - (centerPxY - startTY * 256);
+
+  const tilePromises = [];
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const left = originX + tx * 256;
+      const top = originY + ty * 256;
+      const sub = ['a','b','c','d'][(tx + ty) % 4];
+      const url = `https://${sub}.basemaps.cartocdn.com/dark_nolabels/${zoom}/${startTX + tx}/${startTY + ty}@2x.png`;
+      tilePromises.push(loadImage(url).then(img => {
+        ctx.drawImage(img, left, top, 256, 256);
+      }).catch(() => {}));
+    }
+  }
+  await Promise.all(tilePromises);
+
+  // Grade toward the theme's deep purple; heavy brightness/contrast
+  // lift so dark_nolabels' subtle borders and water read on a TV
+  ctx.filter = 'brightness(1.9) contrast(1.4)';
+  ctx.drawImage(canvas, 0, 0);
+  ctx.filter = 'none';
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = '#241456';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+
+  return { canvas, ctx, layout: { startTX, startTY, tilesX, tilesY, originX, originY } };
+}
+
+async function updateRegionalSlide() {
   if (metroData.length === 0) return;
 
   const mapBg = document.getElementById('mapBg');
   const mapLabels = document.getElementById('mapLabels');
-  const wrap = mapBg.parentElement;
-  const mapW = wrap.offsetWidth || 1100;
-  const mapH = wrap.offsetHeight || 700;
+  mapLabels.innerHTML = '';
 
-  // Zoom 8 ≈ ~120 mile radius view
-  const zoom = 8;
+  const W = 1280, H = 800;
+  const zoom = MAP_ZOOM;
 
-  // Build a grid of tile images as background
-  const n = Math.pow(2, zoom);
-  const centerTileX = Math.floor((lon + 180) / 360 * n);
-  const centerTileY = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n);
+  try {
+    const { canvas, ctx } = await buildBaseCanvas(zoom, W, H);
 
-  // Calculate how many tiles we need
-  const tilesX = Math.ceil(mapW / 256) + 2;
-  const tilesY = Math.ceil(mapH / 256) + 2;
-  const startTX = centerTileX - Math.floor(tilesX / 2);
-  const startTY = centerTileY - Math.floor(tilesY / 2);
+    // Draw city labels
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
 
-  // Pixel offset of the center
-  const centerPxX = (lon + 180) / 360 * n * 256;
-  const centerPxY = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * n * 256;
-  const originX = mapW / 2 - (centerPxX - startTX * 256);
-  const originY = mapH / 2 - (centerPxY - startTY * 256);
+    const drawn = [{ x: W / 2, y: H / 2 }]; // reserve space around the user pin
+    for (const m of metroData) {
+      const city = MAJOR_CITIES.find(c => c.name === m.name);
+      if (!city) continue;
+      const pos = latLonToPixel(city.lat, city.lon, lat, lon, zoom, W, H);
+      // keep the full label (name + temp + icon) inside the frame
+      if (pos.x < 20 || pos.x > W - 240 || pos.y < 50 || pos.y > H - 40) continue;
+      // skip labels that would collide with one already on the map
+      if (drawn.some(p => Math.abs(pos.x - p.x) < 220 && Math.abs(pos.y - p.y) < 80)) continue;
+      drawn.push(pos);
 
-  let tilesHtml = '';
-  for (let ty = 0; ty < tilesY; ty++) {
-    for (let tx = 0; tx < tilesX; tx++) {
-      const tileX = startTX + tx;
-      const tileY = startTY + ty;
-      const left = originX + tx * 256;
-      const top = originY + ty * 256;
-      tilesHtml += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="position:absolute;left:${left}px;top:${top}px;width:256px;height:256px;" />`;
+      const emoji = getWeatherEmoji(m.code, !m.isDay);
+
+      // City name
+      ctx.font = 'bold 18px Share Tech Mono, monospace';
+      ctx.fillStyle = '#e8e8e8';
+      ctx.fillText(m.name, pos.x, pos.y - 8);
+
+      // Temp
+      ctx.font = 'bold 36px Share Tech Mono, monospace';
+      ctx.fillStyle = '#ffdd44';
+      ctx.fillText(`${m.temp}°`, pos.x, pos.y + 30);
+
+      // Emoji
+      ctx.font = '32px sans-serif';
+      ctx.shadowBlur = 0;
+      const tempWidth = ctx.measureText(`${m.temp}°`).width;
+      ctx.fillText(emoji, pos.x + tempWidth + 6, pos.y + 30);
+      ctx.shadowBlur = 6;
     }
+
+    // User location pin
+    ctx.font = 'bold 22px Share Tech Mono, monospace';
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillText(`📍 ${locationStr.toUpperCase().split(',')[0]}`, W / 2 - 40, H / 2 + 8);
+
+    mapBg.innerHTML = `<img src="${canvas.toDataURL()}" alt="Regional map" />`;
+  } catch(e) {
+    console.error('Regional map render failed:', e);
   }
-  mapBg.innerHTML = tilesHtml;
-
-  // Place city labels
-  let labelsHtml = '';
-  for (const m of metroData) {
-    const city = MAJOR_CITIES.find(c => c.name === m.name);
-    if (!city) continue;
-    const pos = latLonToPixel(city.lat, city.lon, lat, lon, zoom, mapW, mapH);
-    if (pos.x < -50 || pos.x > mapW + 50 || pos.y < -30 || pos.y > mapH + 30) continue;
-    const emoji = getWeatherEmoji(m.code, !m.isDay);
-    labelsHtml += `<div class="map-city" style="left:${pos.x}px;top:${pos.y}px;">
-      <span class="city-name">${m.name}</span>
-      <span class="city-temp">${m.temp}° </span><span class="city-icon">${emoji}</span>
-    </div>`;
-  }
-
-  // User location
-  const userPos = latLonToPixel(lat, lon, lat, lon, zoom, mapW, mapH);
-  labelsHtml += `<div class="map-user" style="left:${userPos.x}px;top:${userPos.y}px;">📍 ${locationStr.toUpperCase().split(',')[0]}</div>`;
-
-  mapLabels.innerHTML = labelsHtml;
 }
 
 // ══════════════════════════════════════
 // Regional Radar (RainViewer API — free, no key)
+// Pre-renders 6 composite images (base map + radar + pin)
 // ══════════════════════════════════════
-let radarFrames = []; // [{path, time}]
+let radarFrameImages = []; // pre-rendered [{dataUrl, time}]
 let radarAnimIdx = 0;
 let radarAnimInterval = null;
-let radarBaseTilesHtml = '';
-let radarTileInfo = null;
-
-function buildMapTiles(containerId, zoom) {
-  const container = document.getElementById(containerId);
-  const wrap = container.parentElement;
-  const mapW = wrap.offsetWidth || 1100;
-  const mapH = wrap.offsetHeight || 700;
-  const n = Math.pow(2, zoom);
-  const centerTileX = Math.floor((lon + 180) / 360 * n);
-  const latRad = lat * Math.PI / 180;
-  const centerTileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
-  const tilesX = Math.ceil(mapW / 256) + 2;
-  const tilesY = Math.ceil(mapH / 256) + 2;
-  const startTX = centerTileX - Math.floor(tilesX / 2);
-  const startTY = centerTileY - Math.floor(tilesY / 2);
-  const centerPxX = (lon + 180) / 360 * n * 256;
-  const centerPxY = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n * 256;
-  const originX = mapW / 2 - (centerPxX - startTX * 256);
-  const originY = mapH / 2 - (centerPxY - startTY * 256);
-
-  let html = '';
-  for (let ty = 0; ty < tilesY; ty++) {
-    for (let tx = 0; tx < tilesX; tx++) {
-      const tileX = startTX + tx;
-      const tileY = startTY + ty;
-      const left = originX + tx * 256;
-      const top = originY + ty * 256;
-      html += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="left:${left}px;top:${top}px;" />`;
-    }
-  }
-  container.innerHTML = html;
-  return { startTX, startTY, tilesX, tilesY, originX, originY };
-}
 
 async function fetchRadar() {
   try {
@@ -1384,71 +1626,74 @@ async function fetchRadar() {
     const data = await r.json();
     const radar = data.radar;
     if (!radar || !radar.past || radar.past.length === 0) return;
-    // Keep last 6 frames for animation
-    radarFrames = radar.past.slice(-6).map(f => ({ path: f.path, time: f.time }));
-    buildRadarBase();
+    const frames = radar.past.slice(-6).map(f => ({ path: f.path, time: f.time }));
+    await buildRadarFrames(frames);
     startRadarAnimation();
   } catch(e) { console.error('Radar fetch failed:', e); }
 }
 
-function buildRadarBase() {
-  const zoom = 7;
-  const container = document.getElementById('radarMapBg');
-  const wrap = container.parentElement;
-  const mapW = wrap.offsetWidth || 1100;
-  const mapH = wrap.offsetHeight || 700;
-  const n = Math.pow(2, zoom);
-  const latRad = lat * Math.PI / 180;
-  const centerTileX = Math.floor((lon + 180) / 360 * n);
-  const centerTileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
-  const tilesX = Math.ceil(mapW / 256) + 2;
-  const tilesY = Math.ceil(mapH / 256) + 2;
-  const startTX = centerTileX - Math.floor(tilesX / 2);
-  const startTY = centerTileY - Math.floor(tilesY / 2);
-  const centerPxX = (lon + 180) / 360 * n * 256;
-  const centerPxY = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n * 256;
-  const originX = mapW / 2 - (centerPxX - startTX * 256);
-  const originY = mapH / 2 - (centerPxY - startTY * 256);
+async function buildRadarFrames(frames) {
+  const W = 1280, H = 800;
+  const zoom = RADAR_ZOOM;
 
-  // Store tile info for overlay rendering
-  radarTileInfo = { zoom, startTX, startTY, tilesX, tilesY, originX, originY };
+  const { canvas: baseCanvas, layout } = await buildBaseCanvas(zoom, W, H);
+  const { startTX, startTY, tilesX, tilesY, originX, originY } = layout;
 
-  let baseHtml = '';
-  for (let ty = 0; ty < tilesY; ty++) {
-    for (let tx = 0; tx < tilesX; tx++) {
-      const tileX = startTX + tx;
-      const tileY = startTY + ty;
-      const left = originX + tx * 256;
-      const top = originY + ty * 256;
-      baseHtml += `<img src="https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png" style="left:${left}px;top:${top}px;" />`;
+  // Pre-render each frame
+  radarFrameImages = [];
+  for (const frame of frames) {
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Draw base map
+    ctx.drawImage(baseCanvas, 0, 0);
+
+    // Draw radar overlay tiles
+    const tilePromises = [];
+    for (let ty = 0; ty < tilesY; ty++) {
+      for (let tx = 0; tx < tilesX; tx++) {
+        const tileX = startTX + tx;
+        const tileY = startTY + ty;
+        const left = originX + tx * 256;
+        const top = originY + ty * 256;
+        const url = `https://tilecache.rainviewer.com${frame.path}/256/${zoom}/${tileX}/${tileY}/4/1_1.png`;
+        tilePromises.push(loadImage(url).then(img => {
+          ctx.globalAlpha = 0.7;
+          ctx.drawImage(img, left, top, 256, 256);
+          ctx.globalAlpha = 1.0;
+        }).catch(() => {}));
+      }
     }
+    await Promise.all(tilePromises);
+
+    // Bake pin
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+    ctx.font = 'bold 22px Share Tech Mono, monospace';
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillText(`📍 ${locationStr.toUpperCase().split(',')[0]}`, W / 2 - 40, H / 2 + 8);
+
+    radarFrameImages.push({ dataUrl: canvas.toDataURL(), time: frame.time });
   }
-  container.innerHTML = baseHtml;
+
+  // Show first frame immediately on base layer
+  if (radarFrameImages.length > 0) {
+    document.getElementById('radarMapBg').innerHTML = `<img src="${radarFrameImages[0].dataUrl}" alt="Radar" />`;
+  }
 }
 
 function renderRadarFrame(frameIdx) {
-  if (!radarTileInfo || radarFrames.length === 0) return;
-  const frame = radarFrames[frameIdx];
-  const { zoom, startTX, startTY, tilesX, tilesY, originX, originY } = radarTileInfo;
-  const overlay = document.getElementById('radarOverlay');
-
-  let html = '';
-  for (let ty = 0; ty < tilesY; ty++) {
-    for (let tx = 0; tx < tilesX; tx++) {
-      const tileX = startTX + tx;
-      const tileY = startTY + ty;
-      const left = originX + tx * 256;
-      const top = originY + ty * 256;
-      html += `<img src="https://tilecache.rainviewer.com${frame.path}/256/${zoom}/${tileX}/${tileY}/4/1_1.png" style="left:${left}px;top:${top}px;" onerror="this.style.display='none'" />`;
-    }
-  }
-  overlay.innerHTML = html;
+  if (radarFrameImages.length === 0) return;
+  const frame = radarFrameImages[frameIdx];
+  // Swap the single composite image
+  document.getElementById('radarMapBg').innerHTML = `<img src="${frame.dataUrl}" alt="Radar" />`;
 
   const d = new Date(frame.time * 1000);
   const timeEl = document.getElementById('radarTime');
   timeEl.textContent = `RADAR: ${formatTime(d)}`;
-  // Flash the timestamp brighter on the latest frame
-  timeEl.style.color = (frameIdx === radarFrames.length - 1) ? 'var(--bright)' : 'rgba(232,232,232,0.5)';
+  timeEl.style.color = (frameIdx === radarFrameImages.length - 1) ? 'var(--bright)' : 'rgba(232,232,232,0.5)';
 }
 
 function startRadarAnimation() {
@@ -1456,9 +1701,9 @@ function startRadarAnimation() {
   radarAnimIdx = 0;
   renderRadarFrame(0);
   radarAnimInterval = setInterval(() => {
-    radarAnimIdx = (radarAnimIdx + 1) % radarFrames.length;
+    radarAnimIdx = (radarAnimIdx + 1) % radarFrameImages.length;
     renderRadarFrame(radarAnimIdx);
-  }, 800); // cycle every 800ms
+  }, 800);
 }
 
 // ══════════════════════════════════════
@@ -1533,14 +1778,8 @@ function getNextMoonPhases() {
 
   const today = new Date();
   for (let dayOffset = 0; dayOffset < 35; dayOffset++) {
-    const d = new Date(today); d.setDate(d.getDate() + dayOffset);
-    const jd = Math.floor(365.25*(d.getFullYear()+4716)) +
-      Math.floor(30.6001*((d.getMonth()+1) >= 3 ? (d.getMonth()+2) : (d.getMonth()+14))) +
-      d.getDate() +
-      ((d.getMonth()+1) < 3 ? -1 : 0) * Math.floor((d.getFullYear() + ((d.getMonth()+1) < 3 ? -1 : 0)) / 100) +
-      Math.floor(Math.floor((d.getFullYear() + ((d.getMonth()+1) < 3 ? -1 : 0)) / 100) / 4) - 1524.5;
-    let age = ((jd - 2451550.1) / 29.530588853) % 1;
-    if (age < 0) age += 1;
+    const d = new Date(today); d.setDate(d.getDate() + dayOffset); d.setHours(12, 0, 0, 0);
+    const age = moonAgeFraction(d);
 
     for (const p of phases) {
       if (p.found) continue;
@@ -1572,14 +1811,17 @@ function buildTicker() {
 
   // Normal weather data
   tickerItems.push(
-    { text: `HUMIDITY: ${c.relative_humidity_2m}%     DEW POINT: ${h?.dew_point_2m?.[nowHour] != null ? cToF(h.dew_point_2m[nowHour])+'°F' : '--'}`, type: 'normal' },
-    { text: `WIND: ${degToCompass(c.wind_direction_10m)} AT ${kmhToMph(c.wind_speed_10m)} MPH`, type: 'normal' },
-    { text: `VISIBILITY: ${h?.visibility?.[nowHour] != null ? kmToMi(h.visibility[nowHour]/1000)+' MI' : '--'}`, type: 'normal' },
-    { text: `UV INDEX: ${Math.round(c.uv_index)}`, type: 'normal', uvLevel: Math.round(c.uv_index) },
-    { text: `SUNRISE: ${formatSunTime(d.sunrise[0])}     SUNSET: ${formatSunTime(d.sunset[0])}`, type: 'normal' },
-    { text: `${moon.emoji} MOON: ${moon.phase} — ${moon.illumination}% ILLUMINATED`, type: 'normal' },
-    { text: `TODAY'S HIGH: ${cToF(d.temperature_2m_max[0])}°F     LOW: ${cToF(d.temperature_2m_min[0])}°F`, type: 'normal' },
-    { text: `FEELS LIKE: ${cToF(c.apparent_temperature)}°F`, type: 'normal' },
+    { text: `HUMIDITY:${c.relative_humidity_2m}%`, type: 'normal' },
+    { text: `DEW POINT:${h?.dew_point_2m?.[nowHour] != null ? cToF(h.dew_point_2m[nowHour])+'°F' : '--'}`, type: 'normal' },
+    { text: `WIND:${degToCompass(c.wind_direction_10m)} AT ${kmhToMph(c.wind_speed_10m)} MPH`, type: 'normal' },
+    { text: `VISIBILITY:${h?.visibility?.[nowHour] != null ? fmtVis(h.visibility[nowHour]) : '--'}`, type: 'normal' },
+    { text: `UV INDEX:${Math.round(c.uv_index)}`, type: 'normal', uvLevel: Math.round(c.uv_index) },
+    { text: `SUNRISE:${formatSunTime(d.sunrise[0])}`, type: 'normal' },
+    { text: `SUNSET:${formatSunTime(d.sunset[0])}`, type: 'normal' },
+    { text: `${moon.emoji} MOON:${moon.phase} — ${moon.illumination}% ILLUMINATED`, type: 'normal' },
+    { text: `TODAY'S HIGH:${cToF(d.temperature_2m_max[0])}°F`, type: 'normal' },
+    { text: `LOW:${cToF(d.temperature_2m_min[0])}°F`, type: 'normal' },
+    { text: `FEELS LIKE:${cToF(c.apparent_temperature)}°F`, type: 'normal' },
   );
 }
 
@@ -1588,11 +1830,11 @@ function buildTickerCrawl() {
   const track = document.getElementById('tickerTrack');
   const bar = document.querySelector('.bottom-bar');
 
-  // Check if any alerts — color the bar
+  // Check if any alerts — color the bar (warnings outrank watches)
   const hasWatch = tickerItems.some(i => i.type === 'watch');
   const hasWarning = tickerItems.some(i => i.type === 'warning');
-  bar.classList.toggle('alert-watch', hasWatch);
-  bar.classList.toggle('alert-warning', !hasWatch && hasWarning);
+  bar.classList.toggle('alert-warning', hasWarning);
+  bar.classList.toggle('alert-watch', !hasWarning && hasWatch);
 
   // Build a long string of all items, duplicated for seamless loop
   let html = '';
@@ -1608,8 +1850,8 @@ function buildTickerCrawl() {
   }
   track.innerHTML = html;
 
-  // Set scroll speed based on content length (~40px per second)
-  const duration = Math.max(20, tickerItems.length * 6);
+  // Set scroll speed based on content length (slower crawl)
+  const duration = Math.max(35, tickerItems.length * 12);
   track.style.setProperty('--ticker-duration', `${duration}s`);
 }
 setInterval(nextSlide, SLIDE_INTERVAL);
@@ -1626,10 +1868,12 @@ async function init() {
   fetchMetroConditions();
   fetchAlerts();
   fetchRadar();
+  fetchNWSForecast();
   setInterval(fetchWeather, DATA_REFRESH);
   setInterval(fetchMetroConditions, DATA_REFRESH);
   setInterval(fetchAlerts, DATA_REFRESH);
   setInterval(fetchRadar, DATA_REFRESH);
+  setInterval(fetchNWSForecast, DATA_REFRESH);
   // Full page reload every hour to prevent memory leaks on long-running kiosk
   setTimeout(() => location.reload(), PAGE_RELOAD);
 }
