@@ -528,7 +528,7 @@
     text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
   }
   .radar-legend {
-    position: absolute; bottom: 1.5vh; right: 6vw;
+    position: absolute; bottom: 1.5vh; right: 2vw;
     display: flex; gap: 0.8vw; align-items: center;
     font-size: max(10px, 1vw);
     color: rgba(232,232,232,0.6);
@@ -564,23 +564,6 @@
     white-space: pre-wrap;
     overflow: hidden;
   }
-
-  /* ── Music button ── */
-  .music-btn {
-    position: fixed; bottom: calc(max(9vh, 60px) + 1.5vh); right: 3vw;
-    z-index: 900; cursor: pointer;
-    background: rgba(30,20,60,0.75); border: 1px solid rgba(120,110,180,0.5);
-    border-radius: 4px; padding: 0.5vw 0.8vw;
-    color: var(--bright); font-family: var(--mono);
-    font-size: max(14px, 1.4vw);
-    text-transform: uppercase; letter-spacing: 1px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    transition: background 0.3s;
-    display: flex; align-items: center; gap: 0.4vw;
-  }
-  .music-btn:hover { background: rgba(50,40,90,0.85); }
-  .music-btn.muted { opacity: 0.6; }
-  .music-btn.muted:hover { opacity: 1; }
 
   .slide-dots {
     position: absolute; bottom: 0.8vh; left: 50%; transform: translateX(-50%);
@@ -735,12 +718,6 @@
     .ticker-text, .ticker-sep { font-size: max(13px, 4.2vw); letter-spacing: 1px; }
     .location-name { display: none; }
 
-    /* Music button: clear of the ticker bar */
-    .music-btn {
-      bottom: 56px; right: 10px;
-      padding: 6px 10px; font-size: max(12px, 3.6vw);
-    }
-
     /* Slide dots a bit bigger for touch visibility */
     .dot { width: 6px; height: 6px; }
     .slide-dots { bottom: 6px; gap: 5px; }
@@ -883,10 +860,6 @@
     </div>
   </div>
 </div>
-
-<button class="music-btn muted" id="musicBtn" onclick="toggleMusic()">
-  <span id="musicIcon">🔇</span>
-</button>
 
 <!--
   OPTIONAL: Drop a music.mp3 in this folder for real Weather Channel jazz.
@@ -1344,55 +1317,26 @@ function stopSynth() {
   synthNodes = [];
 }
 
-function setMusicUI(playing) {
-  const btn = document.getElementById('musicBtn');
-  const icon = document.getElementById('musicIcon');
-  if (playing) {
-    btn.classList.remove('muted');
-    icon.textContent = '🔊';
-  } else {
-    btn.classList.add('muted');
-    icon.textContent = '🔇';
-  }
-  musicPlaying = playing;
-}
-
-// Track if music file is available
-let hasAudioFile = false;
-(function checkAudioFile() {
+// Music plays automatically. Browsers block autoplay-with-sound until
+// the page has a user gesture, so we try at load and retry on the first
+// tap/click/keypress. (On a kiosk, launch the browser with
+// --autoplay-policy=no-user-gesture-required to skip the gesture wait.)
+function startMusic(fromGesture) {
+  if (musicPlaying) return;
   const audio = document.getElementById('bgMusic');
-  if (!audio) return;
-  audio.addEventListener('canplaythrough', () => { hasAudioFile = true; });
-  audio.addEventListener('error', () => { hasAudioFile = false; });
-  // Also check the source element
-  const src = audio.querySelector('source');
-  if (src) src.addEventListener('error', () => { hasAudioFile = false; });
-})();
-
-function toggleMusic() {
-  if (musicPlaying) {
-    document.getElementById('bgMusic').pause();
-    stopSynth();
-    setMusicUI(false);
-    return;
-  }
-
-  if (hasAudioFile) {
-    const audio = document.getElementById('bgMusic');
-    audio.volume = 0.4;
-    audio.play().then(() => {
-      setMusicUI(true);
-    }).catch(() => {
-      // Fallback to synth
+  audio.volume = 0.4;
+  audio.play().then(() => {
+    musicPlaying = true;
+  }).catch(() => {
+    // File missing/undecodable with a real gesture available → synth
+    if (fromGesture && audio.error) {
       startSynth();
-      setMusicUI(true);
-    });
-  } else {
-    // No file — use synth directly
-    startSynth();
-    setMusicUI(true);
-  }
+      musicPlaying = true;
+    }
+  });
 }
+['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+  window.addEventListener(ev, () => startMusic(true), { once: true }));
 
 function updateAllSlides() {
   if (!weatherData) return;
@@ -1917,6 +1861,7 @@ async function init() {
   document.getElementById('loadingScreen').classList.add('hidden');
   document.getElementById('app').style.opacity = '1';
   showSlide(0);
+  startMusic(false);
   fetchMetroConditions();
   fetchAlerts();
   fetchRadar();
