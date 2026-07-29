@@ -905,6 +905,7 @@
   <source src="music.mp3" type="audio/mpeg">
 </audio>
 
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
 // ══════════════════════════════════════
 // CONFIG
@@ -1481,10 +1482,54 @@ function updateAllSlides() {
 }
 
 // ══════════════════════════════════════
-// Map rendering — CARTO dark tiles (free, no API key)
+// Map rendering — Esri World Physical terrain tiles (free, no API key)
+// + bold state outlines from us-atlas TopoJSON, TWC-style
 // ══════════════════════════════════════
-const MAP_ZOOM = 8;
+const MAP_ZOOM = 8;   // World_Physical_Map max zoom is 8
 const RADAR_ZOOM = 7;
+
+let statesGeo = null; // GeoJSON FeatureCollection of US states
+async function loadStatesGeo() {
+  if (statesGeo) return statesGeo;
+  try {
+    const r = await fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+    const topo = await r.json();
+    statesGeo = topojson.feature(topo, topo.objects.states);
+  } catch(e) { console.error('State borders fetch failed:', e); }
+  return statesGeo;
+}
+
+function drawStateBorders(ctx, zoom, W, H) {
+  if (!statesGeo) return;
+  ctx.save();
+  ctx.beginPath();
+  for (const f of statesGeo.features) {
+    const g = f.geometry;
+    if (!g) continue;
+    const polys = g.type === 'Polygon' ? [g.coordinates] :
+                  g.type === 'MultiPolygon' ? g.coordinates : [];
+    for (const poly of polys) {
+      for (const ring of poly) {
+        let started = false;
+        for (const pt of ring) {
+          const p = latLonToPixel(pt[1], pt[0], lat, lon, zoom, W, H);
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+      }
+    }
+  }
+  ctx.lineJoin = 'round';
+  // light halo under a heavy dark stroke — bold TWC-style borders
+  ctx.strokeStyle = 'rgba(255,255,250,0.35)';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(15,18,30,0.9)';
+  ctx.lineWidth = 4.5;
+  ctx.stroke();
+  ctx.restore();
+}
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -1507,9 +1552,10 @@ function latLonToPixel(latDeg, lonDeg, centerLat, centerLon, zoom, mapW, mapH) {
   return { x: (px - cx) + mapW / 2, y: (py - cy) + mapH / 2 };
 }
 
-// Draw a CARTO dark_nolabels basemap centered on the user, graded toward
-// the app's deep-purple theme. Returns canvas + tile layout for overlays.
+// Draw a terrain basemap with bold state outlines, centered on the user.
+// Returns canvas + tile layout for overlays.
 async function buildBaseCanvas(zoom, W, H) {
+  await loadStatesGeo();
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -1530,8 +1576,7 @@ async function buildBaseCanvas(zoom, W, H) {
     for (let tx = 0; tx < tilesX; tx++) {
       const left = originX + tx * 256;
       const top = originY + ty * 256;
-      const sub = ['a','b','c','d'][(tx + ty) % 4];
-      const url = `https://${sub}.basemaps.cartocdn.com/dark_nolabels/${zoom}/${startTX + tx}/${startTY + ty}@2x.png`;
+      const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/${zoom}/${startTY + ty}/${startTX + tx}`;
       tilePromises.push(loadImage(url).then(img => {
         ctx.drawImage(img, left, top, 256, 256);
       }).catch(() => {}));
@@ -1539,15 +1584,26 @@ async function buildBaseCanvas(zoom, W, H) {
   }
   await Promise.all(tilePromises);
 
-  // Grade toward the theme's deep purple; heavy brightness/contrast
-  // lift so dark_nolabels' subtle borders and water read on a TV
-  ctx.filter = 'brightness(1.9) contrast(1.4)';
+  // Mute the terrain slightly so labels/UI pop
+  ctx.filter = 'brightness(0.95) saturate(0.85)';
   ctx.drawImage(canvas, 0, 0);
   ctx.filter = 'none';
-  ctx.globalCompositeOperation = 'screen';
-  ctx.fillStyle = '#241456';
-  ctx.fillRect(0, 0, W, H);
-  ctx.globalCompositeOperation = 'source-over';
+
+  drawStateBorders(ctx, zoom, W, H);
+
+  // Soft vignette to blend into the retro UI
+  const vig = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.45, W/2, H/2, Math.max(W,H)*0.8);
+  vig.addColorStop(0, 'rgba(15,8,40,0)');
+  vig.addColorStop(1, 'rgba(15,8,40,0.4)');
+  ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+
+  // Attribution
+  ctx.save();
+  ctx.font = '11px Arial';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 2;
+  ctx.fillText('TERRAIN © ESRI / USGS / NOAA', 12, 20);
+  ctx.restore();
 
   return { canvas, ctx, layout: { startTX, startTY, tilesX, tilesY, originX, originY } };
 }
@@ -1578,7 +1634,7 @@ async function updateRegionalSlide() {
       // keep the full label (name + temp + icon) inside the frame
       if (pos.x < 20 || pos.x > W - 240 || pos.y < 50 || pos.y > H - 40) continue;
       // skip labels that would collide with one already on the map
-      if (drawn.some(p => Math.abs(pos.x - p.x) < 220 && Math.abs(pos.y - p.y) < 80)) continue;
+      if (drawn.some(p => Math.abs(pos.x - p.x) < 170 && Math.abs(pos.y - p.y) < 60)) continue;
       drawn.push(pos);
 
       const emoji = getWeatherEmoji(m.code, !m.isDay);
@@ -1666,6 +1722,9 @@ async function buildRadarFrames(frames) {
       }
     }
     await Promise.all(tilePromises);
+
+    // Re-stroke state borders over the echoes, TWC-style
+    drawStateBorders(ctx, zoom, W, H);
 
     // Bake pin
     ctx.shadowColor = 'rgba(0,0,0,0.9)';
