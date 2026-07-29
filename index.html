@@ -622,16 +622,16 @@
       border-top: 1px solid rgba(255,255,255,0.08);
       margin-top: 1vw;
     }
-    .header-temp .ht-val { font-size: 28px; }
-    .header-temp .ht-feels { font-size: 13px; }
+    .header-temp .ht-val { font-size: clamp(22px, 7vw, 34px); }
+    .header-temp .ht-feels { font-size: clamp(11px, 3.2vw, 15px); }
     .header-title {
-      font-size: 16px; white-space: nowrap;
+      font-size: clamp(13px, 4.2vw, 20px); white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis;
     }
-    .header-time { font-size: 18px; }
-    .header-date { font-size: 12px; letter-spacing: 1px; }
+    .header-time { font-size: clamp(15px, 4.6vw, 22px); }
+    .header-date { font-size: clamp(10px, 3vw, 14px); letter-spacing: 1px; }
     .logo { padding: 5px 8px; border-radius: 6px; border-width: 2px; }
-    .logo-text { font-size: 11px; }
+    .logo-text { font-size: clamp(9px, 2.8vw, 13px); }
     .header-bg::before { inset: -40px -80px; }
 
     /* Content: give slides real height and allow scroll within */
@@ -653,13 +653,13 @@
       align-items: center; text-align: center;
     }
     .current-left, .current-right { flex: 0 0 auto; width: 100%; }
-    .weather-icon-large { font-size: 80px; margin-bottom: 0.5vh; }
-    .temp-hero { font-size: 88px; letter-spacing: 1px; }
-    .hilo-sub { font-size: 24px; }
-    .condition-desc { font-size: 22px; margin-top: 0.5vh; }
-    .feels-like-sub { font-size: 14px; }
+    .weather-icon-large { font-size: clamp(56px, 20vw, 96px); margin-bottom: 0.5vh; }
+    .temp-hero { font-size: clamp(64px, 22vw, 110px); letter-spacing: 1px; }
+    .hilo-sub { font-size: clamp(18px, 6vw, 30px); }
+    .condition-desc { font-size: clamp(16px, 5.5vw, 28px); margin-top: 0.5vh; }
+    .feels-like-sub { font-size: clamp(12px, 3.5vw, 16px); }
     .conditions-grid {
-      font-size: 17px; gap: 0.3vh 6vw;
+      font-size: clamp(14px, 4.2vw, 20px); gap: 0.3vh 6vw;
       justify-content: center;
       max-width: 360px; margin: 1vh auto 0;
       line-height: 1.5;
@@ -668,11 +668,11 @@
     /* Today's Forecast */
     .today-layout { flex-direction: column; gap: 2vh; text-align: center; }
     .today-left, .today-right { width: 100%; }
-    .today-icon { font-size: 90px; }
-    .today-cond { font-size: 26px; }
-    .today-temp-big { font-size: 72px; }
+    .today-icon { font-size: clamp(64px, 22vw, 100px); }
+    .today-cond { font-size: clamp(19px, 6.5vw, 30px); }
+    .today-temp-big { font-size: clamp(52px, 18vw, 84px); }
     .today-grid {
-      font-size: 20px; gap: 0.5vh 6vw;
+      font-size: clamp(15px, 5vw, 24px); gap: 0.5vh 6vw;
       justify-content: center;
       max-width: 360px; margin: 0 auto;
       line-height: 1.7;
@@ -685,60 +685,60 @@
     }
     /* odd card count: let the last card span the full row */
     .forecast-card:last-child:nth-child(odd) { grid-column: span 2; }
-    .card-day { font-size: 16px; padding: 1vh 0; letter-spacing: 1px; }
-    .card-icon { font-size: 54px; padding: 1vh 0; }
-    .card-cond { font-size: 12px; padding: 0.3vh 0.5vw 1vh; }
+    .card-day { font-size: clamp(13px, 4vw, 19px); padding: 1vh 0; letter-spacing: 1px; }
+    .card-icon { font-size: clamp(40px, 14vw, 64px); padding: 1vh 0; }
+    .card-cond { font-size: clamp(10px, 3.2vw, 15px); padding: 0.3vh 0.5vw 1vh; }
     .card-temps { padding: 1vh 0.5vw; }
-    .card-hi, .card-lo { font-size: 11px; }
-    .card-hi span, .card-lo span { font-size: 28px; }
+    .card-hi, .card-lo { font-size: clamp(9px, 2.8vw, 13px); }
+    .card-hi span, .card-lo span { font-size: clamp(22px, 7vw, 33px); }
 
     /* Forecast paragraph */
-    .forecast-paragraph { font-size: 16px; line-height: 1.5; }
+    .forecast-paragraph { font-size: clamp(14px, 4.2vw, 20px); line-height: 1.5; }
 
     /* Regional map labels */
-    .map-city .city-name { font-size: 11px; }
-    .map-city .city-temp { font-size: 18px; }
-    .map-city .city-icon { font-size: 16px; }
-    .map-user { font-size: 12px; }
+    .map-city .city-name { font-size: clamp(9px, 2.8vw, 13px); }
+    .map-city .city-temp { font-size: clamp(14px, 4.6vw, 21px); }
+    .map-city .city-icon { font-size: clamp(13px, 4vw, 19px); }
+    .map-user { font-size: clamp(10px, 3.2vw, 14px); }
 
     /* Almanac: stack */
     .almanac-layout { flex-direction: column; gap: 2vh; }
-    .almanac-grid { font-size: 18px; gap: 0.4vh 6vw; }
-    .almanac-label { font-size: 14px; }
+    .almanac-grid { font-size: clamp(14px, 4.6vw, 21px); gap: 0.4vh 6vw; }
+    .almanac-label { font-size: clamp(11px, 3.6vw, 16px); }
     .moon-phases-row { flex-wrap: wrap; gap: 2vw 3vw; }
     .moon-phase-card { flex: 1 1 40%; }
-    .moon-phase-card .phase-label { font-size: 14px; }
-    .moon-phase-card .phase-emoji { font-size: 70px; margin: 0.5vh 0; }
-    .moon-phase-card .phase-date { font-size: 14px; }
+    .moon-phase-card .phase-label { font-size: clamp(11px, 3.6vw, 16px); }
+    .moon-phase-card .phase-emoji { font-size: clamp(52px, 18vw, 82px); margin: 0.5vh 0; }
+    .moon-phase-card .phase-date { font-size: clamp(11px, 3.6vw, 16px); }
 
     /* Hourly */
     .hourly-container { flex-wrap: wrap; gap: 1vh 1vw; }
     .hourly-item { flex: 0 0 calc(25% - 0.75vw); }
-    .hourly-time { font-size: 12px; }
-    .hourly-icon { font-size: 32px; }
-    .hourly-temp { font-size: 20px; }
+    .hourly-time { font-size: clamp(10px, 3.2vw, 14px); }
+    .hourly-icon { font-size: clamp(24px, 8vw, 38px); }
+    .hourly-temp { font-size: clamp(16px, 5.2vw, 24px); }
     .hourly-divider { display: none; }
 
     /* Alert */
-    .alert-event-title { font-size: 18px; }
-    .alert-description { font-size: 14px; line-height: 1.5; }
-    .alert-no-alerts { font-size: 16px; }
+    .alert-event-title { font-size: clamp(15px, 4.6vw, 21px); }
+    .alert-description { font-size: clamp(12px, 3.6vw, 16px); line-height: 1.5; }
+    .alert-no-alerts { font-size: clamp(13px, 4.2vw, 18px); }
 
     /* Radar legend smaller */
-    .radar-legend { gap: 2vw; font-size: 9px; }
+    .radar-legend { gap: 2vw; font-size: clamp(8px, 2.4vw, 11px); }
     .radar-legend-swatch { width: 8px; height: 8px; }
-    .radar-timestamp { font-size: 11px; }
-    .radar-pin { font-size: 12px; }
+    .radar-timestamp { font-size: clamp(9px, 2.8vw, 13px); }
+    .radar-pin { font-size: clamp(10px, 3.2vw, 14px); }
 
     /* Bottom ticker */
     .bottom-bar { height: auto; min-height: 44px; padding: 1.5vw 3vw; }
-    .ticker-text, .ticker-sep { font-size: 16px; letter-spacing: 1px; }
+    .ticker-text, .ticker-sep { font-size: clamp(13px, 4.2vw, 19px); letter-spacing: 1px; }
     .location-name { display: none; }
 
     /* Music button: clear of the ticker bar */
     .music-btn {
       bottom: 56px; right: 10px;
-      padding: 6px 10px; font-size: 14px;
+      padding: 6px 10px; font-size: clamp(12px, 3.6vw, 16px);
     }
 
     /* Slide dots a bit bigger for touch visibility */
@@ -746,15 +746,6 @@
     .slide-dots { bottom: 6px; gap: 5px; }
   }
 
-  /* Very narrow phones */
-  @media (max-width: 380px) {
-    .temp-hero { font-size: 72px; }
-    .weather-icon-large { font-size: 64px; }
-    .forecast-cards { grid-template-columns: repeat(2, 1fr); }
-    .card-hi span, .card-lo span { font-size: 24px; }
-    .today-temp-big { font-size: 60px; }
-    .header-title { font-size: 17px; }
-  }
 </style>
 </head>
 <body>
