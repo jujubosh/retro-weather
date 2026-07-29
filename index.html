@@ -1513,11 +1513,11 @@ function drawStateBorders(ctx, zoom, W, H) {
   }
   ctx.lineJoin = 'round';
   // light halo under a heavy dark stroke — bold TWC-style borders
-  ctx.strokeStyle = 'rgba(255,255,250,0.35)';
-  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(255,255,250,0.3)';
+  ctx.lineWidth = 6;
   ctx.stroke();
-  ctx.strokeStyle = 'rgba(15,18,30,0.9)';
-  ctx.lineWidth = 4.5;
+  ctx.strokeStyle = 'rgba(15,18,30,0.85)';
+  ctx.lineWidth = 3.5;
   ctx.stroke();
   ctx.restore();
 }
@@ -1576,7 +1576,7 @@ async function buildBaseCanvas(zoom, W, H) {
   await Promise.all(tilePromises);
 
   // Mute the terrain slightly so labels/UI pop
-  ctx.filter = 'brightness(0.95) saturate(0.85)';
+  ctx.filter = 'brightness(1.08) saturate(0.8)';
   ctx.drawImage(canvas, 0, 0);
   ctx.filter = 'none';
 
@@ -1585,7 +1585,7 @@ async function buildBaseCanvas(zoom, W, H) {
   // Soft vignette to blend into the retro UI
   const vig = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.45, W/2, H/2, Math.max(W,H)*0.8);
   vig.addColorStop(0, 'rgba(15,8,40,0)');
-  vig.addColorStop(1, 'rgba(15,8,40,0.4)');
+  vig.addColorStop(1, 'rgba(15,8,40,0.28)');
   ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
 
   // Attribution
@@ -1841,7 +1841,9 @@ function getNextMoonPhases() {
     }
     if (phases.every(p => p.found)) break;
   }
-  return phases;
+  // order chronologically so the row reads as a timeline
+  return phases.sort((a, b) =>
+    (a.found ? a.found.getTime() : Infinity) - (b.found ? b.found.getTime() : Infinity));
 }
 
 // Ticker
