@@ -1322,7 +1322,16 @@ function stopSynth() {
 // the page has a user gesture, so we try at load and retry on the first
 // tap/click/keypress. (On a kiosk, launch the browser with
 // --autoplay-policy=no-user-gesture-required to skip the gesture wait.)
-const MUSIC_BUILD = 'v4';
+const MUSIC_BUILD = 'v5';
+
+// Probe whether Web Audio is gated by the same autoplay policy.
+let waState = '?';
+try {
+  const waProbe = new (window.AudioContext || window.webkitAudioContext)();
+  const waReport = () => { waState = waProbe.state; };
+  waProbe.resume().then(waReport, waReport);
+  waReport();
+} catch (e) { waState = 'err'; }
 let musicAttempting = false;
 function setMusicStatus(msg) {
   const el = document.getElementById('musicStatus');
@@ -1331,7 +1340,7 @@ function setMusicStatus(msg) {
   const chrome = (navigator.userAgent.match(/Chrome\/\d+/) || [''])[0];
   const frame = (window.top === window.self) ? 'top' : 'framed';
   el.style.display = 'block';
-  el.textContent = 'MUSIC ' + MUSIC_BUILD + ': ' + msg + ' [' + frame + ' ' + chrome + ']';
+  el.textContent = 'MUSIC ' + MUSIC_BUILD + ': ' + msg + ' [' + frame + ' ' + chrome + ' wa=' + waState + ']';
 }
 setMusicStatus('standby');
 
@@ -1400,13 +1409,13 @@ function startMusic(fromGesture) {
             } else {
               audio.pause();
               audio.muted = false;
-              setMusicStatus('unmute denied');
+              setMusicStatus('TAP SCREEN FOR MUSIC (unmute denied)');
             }
             musicAttempting = false;
           }, 1200);
         }, 800);
       }).catch((e2) => {
-        setMusicStatus('muted play failed: ' + ((e2 && e2.name) || '?'));
+        setMusicStatus('TAP SCREEN FOR MUSIC (' + ((e2 && e2.name) || '?') + ')');
         musicAttempting = false;
       });
       return;
@@ -1419,8 +1428,16 @@ function startMusic(fromGesture) {
     musicAttempting = false;
   });
 }
+// A tap on the Nest Hub touchscreen reaches the page as a real user
+// gesture. Listen on every tap (not once) until music is running, and
+// let the gesture outrank any in-flight background attempt — the
+// activation window is short, so play() must fire from this handler.
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
-  window.addEventListener(ev, () => startMusic(true), { once: true }));
+  window.addEventListener(ev, () => {
+    if (musicPlaying) return;
+    musicAttempting = false;
+    startMusic(true);
+  }));
 
 // Cast receivers (Nest Hub / DashCast) never deliver a user gesture, but they
 // do permit autoplay — the first play() attempt just sometimes loses a race
