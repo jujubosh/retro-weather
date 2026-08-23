@@ -868,7 +868,7 @@
 <audio id="bgMusic" loop preload="auto">
   <source src="music.mp3" type="audio/mpeg">
 </audio>
-<div id="musicStatus" style="display:none;position:fixed;left:10px;bottom:10px;z-index:9999;font:bold 20px monospace;color:#ffde00;background:rgba(0,0,0,0.65);padding:6px 10px;border-radius:4px;"></div>
+<div id="musicStatus" style="display:none;position:fixed;left:10px;bottom:10px;z-index:9999;font:bold 14px monospace;letter-spacing:1px;color:rgba(255,255,255,0.8);background:rgba(0,0,0,0.45);padding:4px 8px;border-radius:4px;">&#9834; TAP FOR MUSIC</div>
 
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
@@ -1322,38 +1322,14 @@ function stopSynth() {
 // the page has a user gesture, so we try at load and retry on the first
 // tap/click/keypress. (On a kiosk, launch the browser with
 // --autoplay-policy=no-user-gesture-required to skip the gesture wait.)
-const MUSIC_BUILD = 'v5';
-
-// Probe whether Web Audio is gated by the same autoplay policy.
-let waState = '?';
-try {
-  const waProbe = new (window.AudioContext || window.webkitAudioContext)();
-  const waReport = () => { waState = waProbe.state; };
-  waProbe.resume().then(waReport, waReport);
-  waReport();
-} catch (e) { waState = 'err'; }
+// The Nest Hub webview (Chrome 148+) denies all autoplay, muted and Web
+// Audio included; a touchscreen tap is the only unlock. Show a small
+// hint only while music is off (each cast and the hourly kiosk reload
+// need a fresh tap).
 let musicAttempting = false;
-function setMusicStatus(msg) {
+function setMusicHint(show) {
   const el = document.getElementById('musicStatus');
-  if (!el) return;
-  if (!msg) { el.style.display = 'none'; return; }
-  const chrome = (navigator.userAgent.match(/Chrome\/\d+/) || [''])[0];
-  const frame = (window.top === window.self) ? 'top' : 'framed';
-  el.style.display = 'block';
-  el.textContent = 'MUSIC ' + MUSIC_BUILD + ': ' + msg + ' [' + frame + ' ' + chrome + ' wa=' + waState + ']';
-}
-setMusicStatus('standby');
-
-// While playing, keep a live badge up so "page thinks it's playing but
-// no sound comes out" is distinguishable from "never started".
-function showPlayingStatus(audio) {
-  const tick = () => {
-    if (!audio) { setMusicStatus('SYNTH PLAYING'); return; }
-    setMusicStatus('PLAYING t=' + Math.round(audio.currentTime) + 's' +
-      ' paused=' + audio.paused + ' muted=' + audio.muted + ' vol=' + audio.volume);
-  };
-  tick();
-  setInterval(tick, 2000);
+  if (el) el.style.display = show ? 'block' : 'none';
 }
 
 // play() can hang forever without resolving OR rejecting (e.g. media
@@ -1380,50 +1356,46 @@ function startMusic(fromGesture) {
   const audio = document.getElementById('bgMusic');
   audio.volume = 0.4;
   audio.muted = false;
-  setMusicStatus('trying unmuted play');
   attemptPlay(audio).then(() => {
     musicPlaying = true;
     musicAttempting = false;
-    showPlayingStatus(audio);
+    setMusicHint(false);
   }).catch((err) => {
     // File missing/undecodable with a real gesture available → synth
     if (fromGesture && audio.error) {
       startSynth();
       musicPlaying = true;
       musicAttempting = false;
-      showPlayingStatus(null);
+      setMusicHint(false);
       return;
     }
     if (err && err.name === 'NotAllowedError') {
-      // Autoplay policy refused unmuted start. Muted autoplay is always
-      // allowed — start muted, then try to unmute a moment later.
+      // Autoplay policy refused unmuted start; try muted, then unmute.
       audio.muted = true;
-      setMusicStatus('blocked; trying muted start');
       attemptPlay(audio).then(() => {
         setTimeout(() => {
           audio.muted = false;
           setTimeout(() => {
             if (!audio.paused && !audio.muted) {
               musicPlaying = true;
-              showPlayingStatus(audio);
+              setMusicHint(false);
             } else {
               audio.pause();
               audio.muted = false;
-              setMusicStatus('TAP SCREEN FOR MUSIC (unmute denied)');
+              setMusicHint(true);
             }
             musicAttempting = false;
           }, 1200);
         }, 800);
-      }).catch((e2) => {
-        setMusicStatus('TAP SCREEN FOR MUSIC (' + ((e2 && e2.name) || '?') + ')');
+      }).catch(() => {
+        setMusicHint(true);
         musicAttempting = false;
       });
       return;
     }
-    // Stall/network/decode: report it and reset the element so the
-    // retry timer gets a fresh attempt.
-    setMusicStatus(((err && err.name) || 'unknown error') +
-      (audio.error ? ' media=' + audio.error.code : ''));
+    // Stall/network/decode: reset the element so the retry timer gets a
+    // fresh attempt, and show the hint since a tap can also recover it.
+    setMusicHint(true);
     if (audio.error || (err && String(err.name).indexOf('Timeout') === 0)) audio.load();
     musicAttempting = false;
   });
