@@ -579,6 +579,64 @@
   /* ══════════════════════════════════════
      MOBILE / PORTRAIT
      ══════════════════════════════════════ */
+  /* ── Calendar slides ── */
+  .cal-section-label {
+    font-size: max(15px, min(1.9vw, 3vh)); color: var(--yellow);
+    letter-spacing: 3px; margin-bottom: 1vh;
+    border-bottom: 1px solid var(--panel-border); padding-bottom: 0.4vh;
+  }
+  .cal-row {
+    display: flex; gap: 2vw; align-items: baseline;
+    font-size: max(18px, min(2.3vw, 3.6vh)); line-height: 1.65;
+  }
+  .cal-time { color: var(--orange-peach); flex: 0 0 13vw; text-align: right; white-space: nowrap; }
+  .cal-title { color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-none { color: rgba(232,232,232,0.55); font-size: max(15px, min(1.9vw, 3vh)); line-height: 1.8; }
+  .cal-week-row {
+    display: flex; gap: 1.5vw; align-items: baseline;
+    border-bottom: 1px solid var(--panel-border);
+    padding: 0.75vh 0; font-size: max(14px, min(1.85vw, 2.9vh));
+  }
+  .cal-week-row.today { background: rgba(255,221,68,0.08); }
+  .cal-week-day { flex: 0 0 10.5vw; color: var(--orange-peach); white-space: nowrap; }
+  .cal-week-row.today .cal-week-day { color: var(--yellow); }
+  .cal-week-evs { color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-sep { color: var(--orange-warm); }
+  .cal-more { color: var(--yellow); }
+  .cal-none-inline { color: rgba(232,232,232,0.35); }
+  .cal-month-title {
+    text-align: center; color: var(--yellow); letter-spacing: 4px;
+    font-size: max(16px, min(2.2vw, 3.4vh)); margin-bottom: 1.2vh;
+  }
+  .cal-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5vh 0.4vw; }
+  .cal-dow { text-align: center; color: var(--orange-peach); font-size: max(10px, min(1.3vw, 2vh)); }
+  .cal-cell {
+    background: rgba(0,0,0,0.25); border: 1px solid var(--panel-border);
+    border-radius: 4px; min-height: 7.2vh; padding: 0.4vh 0.5vw;
+    display: flex; flex-direction: column;
+  }
+  .cal-cell.empty { background: transparent; border-color: transparent; }
+  .cal-cell.today { border-color: var(--yellow); background: rgba(255,221,68,0.12); }
+  .cal-cell-num { font-size: max(12px, min(1.5vw, 2.3vh)); }
+  .cal-cell.today .cal-cell-num { color: var(--yellow); }
+  .cal-cell-dots { display: flex; gap: 0.3vw; margin-top: auto; flex-wrap: wrap; }
+  .cal-dot {
+    width: max(6px, 0.55vw); height: max(6px, 0.55vw); border-radius: 50%;
+    background: var(--yellow); box-shadow: 0 0 4px var(--yellow);
+  }
+
+  /* ── Photo slide ── */
+  .photo-wrap {
+    position: absolute; inset: 0; background: #000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .photo-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .photo-count {
+    position: absolute; right: 1vw; bottom: 1vh;
+    font-size: max(11px, 1.3vw); color: rgba(255,255,255,0.75);
+    background: rgba(0,0,0,0.45); padding: 2px 8px; border-radius: 4px;
+  }
+
   @media (max-width: 768px), (orientation: portrait) and (max-width: 900px) {
     html, body { overflow-y: auto; overflow-x: hidden; }
 
@@ -677,6 +735,14 @@
 
     /* Forecast paragraph */
     .forecast-paragraph { font-size: max(14px, 4.2vw); line-height: 1.5; }
+
+    /* Calendar slides on small screens */
+    .cal-row { font-size: max(13px, 4vw); gap: 3vw; }
+    .cal-time { flex: 0 0 24vw; }
+    .cal-week-row { font-size: max(11px, 3.4vw); }
+    .cal-week-day { flex: 0 0 20vw; }
+    .cal-cell { min-height: 6vh; }
+    .cal-cell-num { font-size: max(10px, 3vw); }
 
     /* Regional map labels */
     .map-city .city-name { font-size: max(9px, 2.8vw); }
@@ -840,7 +906,30 @@
         </div>
       </div>
 
-      <!-- Slide 6: Weather Alert (only shown when active alerts) -->
+      <!-- Slide 6: Today's Schedule (shown when calendar data loads) -->
+      <div class="slide" id="slideCalDay">
+        <div id="calDayWrap"><div class="cal-none">CALENDAR UNAVAILABLE</div></div>
+      </div>
+
+      <!-- Slide 7: This Week (shown when calendar data loads) -->
+      <div class="slide" id="slideCalWeek">
+        <div id="calWeekWrap"></div>
+      </div>
+
+      <!-- Slide 8: This Month (shown when calendar data loads) -->
+      <div class="slide" id="slideCalMonth">
+        <div id="calMonthWrap"></div>
+      </div>
+
+      <!-- Slide 9: Photo Album (shown when photos data loads) -->
+      <div class="slide" id="slidePhotos" style="padding:0;">
+        <div class="photo-wrap">
+          <img id="photoImg" alt="">
+          <div class="photo-count" id="photoCount"></div>
+        </div>
+      </div>
+
+      <!-- Slide 10: Weather Alert (only shown when active alerts) -->
       <div class="slide" id="slide6">
         <div class="alert-slide" id="alertSlideContent">
           <div class="alert-no-alerts">NO ACTIVE ALERTS</div>
@@ -1202,15 +1291,23 @@ function updateForecastTextSlide() {
 // ── Slide system ──
 const SLIDE_LABELS = [
   'Current Conditions', 'Extended Forecast',
-  'Local Forecast', 'Regional Observations', 'Regional Radar', 'Almanac', 'Weather Alerts'
+  'Local Forecast', 'Regional Observations', 'Regional Radar', 'Almanac',
+  "Today's Schedule", 'This Week', 'This Month', 'Photo Album', 'Weather Alerts'
 ];
-let TOTAL_SLIDES = 6; // 6 normally, 7 when alerts are active
+const N_SLIDES = SLIDE_LABELS.length;
+const CAL_DAY_SLIDE = 6, CAL_WEEK_SLIDE = 7, CAL_MONTH_SLIDE = 8,
+      PHOTO_SLIDE = 9, ALERT_SLIDE = 10;
+// Data-dependent slides stay hidden until their data arrives
+const disabledSlides = new Set([CAL_DAY_SLIDE, CAL_WEEK_SLIDE, CAL_MONTH_SLIDE,
+                               PHOTO_SLIDE, ALERT_SLIDE]);
 
 function initDots() {
   const c = document.getElementById('slideDots'); c.innerHTML = '';
-  for (let i = 0; i < TOTAL_SLIDES; i++) {
+  for (let i = 0; i < N_SLIDES; i++) {
     const d = document.createElement('div');
-    d.className = 'dot'; c.appendChild(d);
+    d.className = 'dot';
+    if (disabledSlides.has(i)) d.style.display = 'none';
+    c.appendChild(d);
   }
 }
 
@@ -1233,10 +1330,18 @@ function showSlide(index) {
   });
   document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===index));
   document.getElementById('slideLabel').textContent = SLIDE_LABELS[index];
+  if (index === PHOTO_SLIDE) advancePhoto();
   previousSlide = index;
 }
 
-function nextSlide() { currentSlide = (currentSlide+1)%TOTAL_SLIDES; showSlide(currentSlide); }
+function nextSlide() {
+  let n = currentSlide;
+  for (let i = 0; i < N_SLIDES; i++) {
+    n = (n + 1) % N_SLIDES;
+    if (!disabledSlides.has(n)) break;
+  }
+  currentSlide = n; showSlide(n);
+}
 
 // ══════════════════════════════════════
 // Music: tries music.mp3 first, falls back to Web Audio synth
@@ -1809,9 +1914,9 @@ async function fetchAlerts() {
 
   // Show/hide alert slide
   if (activeAlerts.length > 0) {
-    TOTAL_SLIDES = 7;
+    disabledSlides.delete(ALERT_SLIDE);
   } else {
-    TOTAL_SLIDES = 6;
+    disabledSlides.add(ALERT_SLIDE);
   }
   initDots();
 
@@ -1931,7 +2036,136 @@ function buildTickerCrawl() {
   const duration = Math.max(35, tickerItems.length * 12);
   track.style.setProperty('--ticker-duration', `${duration}s`);
 }
-setInterval(nextSlide, SLIDE_INTERVAL);
+// ══════════════════════════════════════
+// Family calendar + photo album (data/ JSON refreshed by GitHub Action)
+// ══════════════════════════════════════
+const CAL_DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const CAL_MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY',
+                    'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+let calEvents = null;
+let photoList = [], photoIdx = -1;
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"]/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function dayKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') +
+    '-' + String(d.getDate()).padStart(2,'0');
+}
+// Events are emitted in the kiosk's own timezone, so date-string
+// comparison is safe. All-day events span [s, e) with e exclusive.
+function eventsOnDay(d) {
+  if (!calEvents) return [];
+  const key = dayKey(d);
+  return calEvents.filter(ev =>
+    ev.d ? (key >= ev.s && key < ev.e) : ev.s.slice(0,10) === key);
+}
+function fmtEvTime(iso) {
+  const d = new Date(iso);
+  let h = d.getHours();
+  const m = d.getMinutes(), ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + (m ? ':' + String(m).padStart(2,'0') : '') + ap;
+}
+
+function renderCalDay() {
+  const wrap = document.getElementById('calDayWrap');
+  const today = new Date(), tomorrow = new Date(Date.now() + 86400000);
+  const rows = evs => evs.map(ev =>
+    `<div class="cal-row"><span class="cal-time">${ev.d ? 'ALL DAY' : fmtEvTime(ev.s)}</span>` +
+    `<span class="cal-title">${escHtml(ev.t)}</span></div>`).join('');
+  const tEvs = eventsOnDay(today), mEvs = eventsOnDay(tomorrow);
+  let html = '<div class="cal-section-label">TODAY</div>';
+  html += tEvs.length ? rows(tEvs.slice(0, 7)) : '<div class="cal-none">NO EVENTS</div>';
+  if (tEvs.length <= 4) {
+    html += '<div class="cal-section-label" style="margin-top:2.5vh;">TOMORROW</div>';
+    html += mEvs.length ? rows(mEvs.slice(0, 6 - tEvs.length)) : '<div class="cal-none">NO EVENTS</div>';
+  }
+  wrap.innerHTML = html;
+}
+
+function renderCalWeek() {
+  const wrap = document.getElementById('calWeekWrap');
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(Date.now() + i * 86400000);
+    const evs = eventsOnDay(d);
+    let items = evs.slice(0, 3).map(ev =>
+      (ev.d ? '' : fmtEvTime(ev.s) + ' ') + escHtml(ev.t))
+      .join(' <span class="cal-sep">&#9670;</span> ');
+    if (evs.length > 3) items += ` <span class="cal-more">+${evs.length - 3}</span>`;
+    html += `<div class="cal-week-row${i === 0 ? ' today' : ''}">` +
+      `<span class="cal-week-day">${i === 0 ? 'TODAY' : CAL_DAYS[d.getDay()] + ' ' + d.getDate()}</span>` +
+      `<span class="cal-week-evs">${evs.length ? items : '<span class="cal-none-inline">&mdash;</span>'}</span></div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function renderCalMonth() {
+  const wrap = document.getElementById('calMonthWrap');
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const startDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayKey = dayKey(now);
+  let html = `<div class="cal-month-title">${CAL_MONTHS[m]} ${y}</div><div class="cal-month-grid">`;
+  html += CAL_DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-cell empty"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(y, m, day);
+    const dots = eventsOnDay(d).slice(0, 4).map(() => '<span class="cal-dot"></span>').join('');
+    html += `<div class="cal-cell${dayKey(d) === todayKey ? ' today' : ''}">` +
+      `<span class="cal-cell-num">${day}</span><span class="cal-cell-dots">${dots}</span></div>`;
+  }
+  wrap.innerHTML = html + '</div>';
+}
+
+async function fetchCalendar() {
+  try {
+    const r = await fetch('data/calendar.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    calEvents = (await r.json()).events || [];
+    renderCalDay(); renderCalWeek(); renderCalMonth();
+    [CAL_DAY_SLIDE, CAL_WEEK_SLIDE, CAL_MONTH_SLIDE].forEach(i => disabledSlides.delete(i));
+    initDots();
+  } catch (e) { console.error('Calendar fetch failed:', e); }
+}
+
+const PHOTO_SIZE = '=w1280-h800';
+async function fetchPhotos() {
+  try {
+    const r = await fetch('data/photos.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    photoList = ((await r.json()).photos || []).map(p => p.u);
+    if (photoList.length) {
+      disabledSlides.delete(PHOTO_SLIDE);
+      initDots();
+      (new Image()).src = photoList[0] + PHOTO_SIZE; // warm the first photo
+      // If the photo slide is already showing (arrived before the data), fill it now
+      if (currentSlide === PHOTO_SLIDE && photoIdx < 0) advancePhoto();
+    }
+  } catch (e) { console.error('Photos fetch failed:', e); }
+}
+
+// Advance to the next photo each time the slide comes around
+let photoErrStreak = 0;
+function advancePhoto() {
+  if (!photoList.length) return;
+  photoIdx = (photoIdx + 1) % photoList.length;
+  document.getElementById('photoImg').src = photoList[photoIdx] + PHOTO_SIZE;
+  document.getElementById('photoCount').textContent = (photoIdx + 1) + ' / ' + photoList.length;
+  (new Image()).src = photoList[(photoIdx + 1) % photoList.length] + PHOTO_SIZE;
+}
+// Skip photos whose URL has gone stale (until every one has failed)
+document.getElementById('photoImg').addEventListener('error', () => {
+  if (++photoErrStreak < photoList.length) advancePhoto();
+});
+document.getElementById('photoImg').addEventListener('load', () => { photoErrStreak = 0; });
+
+// Debug: ?slide=N pins a slide (rotation pauses) for testing
+const PINNED_SLIDE = new URLSearchParams(location.search).get('slide');
+setInterval(() => { if (PINNED_SLIDE === null) nextSlide(); }, SLIDE_INTERVAL);
 
 // Init
 async function init() {
@@ -1941,17 +2175,22 @@ async function init() {
   await Promise.all([fetchWeather(), reverseGeocode(lat, lon)]);
   document.getElementById('loadingScreen').classList.add('hidden');
   document.getElementById('app').style.opacity = '1';
-  showSlide(0);
+  showSlide(PINNED_SLIDE === null ? 0 : +PINNED_SLIDE);
+  if (PINNED_SLIDE !== null) currentSlide = +PINNED_SLIDE;
   startMusic(false);
   fetchMetroConditions();
   fetchAlerts();
   fetchRadar();
   fetchNWSForecast();
+  fetchCalendar();
+  fetchPhotos();
   setInterval(fetchWeather, DATA_REFRESH);
   setInterval(fetchMetroConditions, DATA_REFRESH);
   setInterval(fetchAlerts, DATA_REFRESH);
   setInterval(fetchRadar, DATA_REFRESH);
   setInterval(fetchNWSForecast, DATA_REFRESH);
+  setInterval(fetchCalendar, DATA_REFRESH);
+  setInterval(fetchPhotos, DATA_REFRESH);
   // Full page reload every hour to prevent memory leaks on long-running kiosk
   setTimeout(() => location.reload(), PAGE_RELOAD);
 }
