@@ -1332,11 +1332,23 @@ function startMusic(fromGesture) {
     if (fromGesture && audio.error) {
       startSynth();
       musicPlaying = true;
+    } else if (audio.error) {
+      // Network/decode hiccup with no gesture (Cast receiver): reset the
+      // element so the retry timer gets a fresh attempt.
+      audio.load();
     }
   });
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
   window.addEventListener(ev, () => startMusic(true), { once: true }));
+
+// Cast receivers (Nest Hub / DashCast) never deliver a user gesture, but they
+// do permit autoplay — the first play() attempt just sometimes loses a race
+// with buffering. Keep retrying until it sticks.
+const musicRetryTimer = setInterval(() => {
+  if (musicPlaying) { clearInterval(musicRetryTimer); return; }
+  startMusic(false);
+}, 5000);
 
 function updateAllSlides() {
   if (!weatherData) return;
