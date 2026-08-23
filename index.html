@@ -1322,7 +1322,7 @@ function stopSynth() {
 // the page has a user gesture, so we try at load and retry on the first
 // tap/click/keypress. (On a kiosk, launch the browser with
 // --autoplay-policy=no-user-gesture-required to skip the gesture wait.)
-const MUSIC_BUILD = 'v3';
+const MUSIC_BUILD = 'v4';
 let musicAttempting = false;
 function setMusicStatus(msg) {
   const el = document.getElementById('musicStatus');
@@ -1334,6 +1334,18 @@ function setMusicStatus(msg) {
   el.textContent = 'MUSIC ' + MUSIC_BUILD + ': ' + msg + ' [' + frame + ' ' + chrome + ']';
 }
 setMusicStatus('standby');
+
+// While playing, keep a live badge up so "page thinks it's playing but
+// no sound comes out" is distinguishable from "never started".
+function showPlayingStatus(audio) {
+  const tick = () => {
+    if (!audio) { setMusicStatus('SYNTH PLAYING'); return; }
+    setMusicStatus('PLAYING t=' + Math.round(audio.currentTime) + 's' +
+      ' paused=' + audio.paused + ' muted=' + audio.muted + ' vol=' + audio.volume);
+  };
+  tick();
+  setInterval(tick, 2000);
+}
 
 // play() can hang forever without resolving OR rejecting (e.g. media
 // buffering stalls on the receiver) — race it against a watchdog so a
@@ -1363,14 +1375,14 @@ function startMusic(fromGesture) {
   attemptPlay(audio).then(() => {
     musicPlaying = true;
     musicAttempting = false;
-    setMusicStatus('');
+    showPlayingStatus(audio);
   }).catch((err) => {
     // File missing/undecodable with a real gesture available → synth
     if (fromGesture && audio.error) {
       startSynth();
       musicPlaying = true;
       musicAttempting = false;
-      setMusicStatus('');
+      showPlayingStatus(null);
       return;
     }
     if (err && err.name === 'NotAllowedError') {
@@ -1384,7 +1396,7 @@ function startMusic(fromGesture) {
           setTimeout(() => {
             if (!audio.paused && !audio.muted) {
               musicPlaying = true;
-              setMusicStatus('');
+              showPlayingStatus(audio);
             } else {
               audio.pause();
               audio.muted = false;
