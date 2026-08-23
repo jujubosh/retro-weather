@@ -868,6 +868,7 @@
 <audio id="bgMusic" loop preload="auto">
   <source src="music.mp3" type="audio/mpeg">
 </audio>
+<div id="musicStatus" style="display:none;position:fixed;left:10px;bottom:10px;z-index:9999;font:bold 20px monospace;color:#ffde00;background:rgba(0,0,0,0.65);padding:6px 10px;border-radius:4px;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
@@ -1321,22 +1322,67 @@ function stopSynth() {
 // the page has a user gesture, so we try at load and retry on the first
 // tap/click/keypress. (On a kiosk, launch the browser with
 // --autoplay-policy=no-user-gesture-required to skip the gesture wait.)
+let musicAttempting = false;
+function setMusicStatus(msg) {
+  const el = document.getElementById('musicStatus');
+  if (!el) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  const chrome = (navigator.userAgent.match(/Chrome\/\d+/) || [''])[0];
+  const frame = (window.top === window.self) ? 'top' : 'framed';
+  el.style.display = 'block';
+  el.textContent = msg + ' [' + frame + ' ' + chrome + ']';
+}
+
 function startMusic(fromGesture) {
-  if (musicPlaying) return;
+  if (musicPlaying || musicAttempting) return;
+  musicAttempting = true;
   const audio = document.getElementById('bgMusic');
   audio.volume = 0.4;
+  audio.muted = false;
   audio.play().then(() => {
     musicPlaying = true;
-  }).catch(() => {
+    musicAttempting = false;
+    setMusicStatus('');
+  }).catch((err) => {
     // File missing/undecodable with a real gesture available → synth
     if (fromGesture && audio.error) {
       startSynth();
       musicPlaying = true;
-    } else if (audio.error) {
-      // Network/decode hiccup with no gesture (Cast receiver): reset the
-      // element so the retry timer gets a fresh attempt.
-      audio.load();
+      musicAttempting = false;
+      setMusicStatus('');
+      return;
     }
+    if (err && err.name === 'NotAllowedError') {
+      // Autoplay policy refused unmuted start. Muted autoplay is always
+      // allowed — start muted, then try to unmute a moment later.
+      audio.muted = true;
+      audio.play().then(() => {
+        setTimeout(() => {
+          audio.muted = false;
+          setTimeout(() => {
+            if (!audio.paused && !audio.muted) {
+              musicPlaying = true;
+              setMusicStatus('');
+            } else {
+              audio.pause();
+              audio.muted = false;
+              setMusicStatus('MUSIC BLOCKED: unmute denied');
+            }
+            musicAttempting = false;
+          }, 1200);
+        }, 800);
+      }).catch((e2) => {
+        setMusicStatus('MUSIC BLOCKED: muted play ' + ((e2 && e2.name) || 'failed'));
+        musicAttempting = false;
+      });
+      return;
+    }
+    // Network/decode hiccup: report it and reset the element so the
+    // retry timer gets a fresh attempt.
+    setMusicStatus('MUSIC ERROR: ' + ((err && err.name) || 'unknown') +
+      (audio.error ? ' media=' + audio.error.code : ''));
+    if (audio.error) audio.load();
+    musicAttempting = false;
   });
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
